@@ -12,7 +12,7 @@ plat = cpe.interface.Interface(COM, baud, to)
 
 # --- Commands ---
 
-plat.adcConv()
-d = plat.adcRead()
+d = plat.adcConv()
+#d = plat.adcRead()
  
 plt.plot(d)
