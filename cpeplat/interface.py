@@ -11,7 +11,8 @@ class Commands:
         self.cpu1_blink = 0x01
         self.cpu2_blink = 0x02
         self.cpu2_gpio = 0x03
-    
+        self.cpu1_read_ram = 0x04
+        
 
 class Interface:
     """A class to provide an interface to the C2000-based platform.
@@ -106,3 +107,14 @@ class Interface:
         cmd = self.cmd.cpu2_gpio
 
         self.ser.send(cmd, data)
+
+
+    def cpu1_read_ram(self):
+
+        cmd = self.cmd.cpu1_read_ram
+
+        self.ser.send(cmd)
+
+        data = self.ser.read(cmd)
+
+        return data
