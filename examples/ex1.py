@@ -10,9 +10,5 @@ to = 1
 # --- Connection ---
 plat = cpe.interface.Interface(COM, baud, to)
 
-# --- Commands ---
-
-d = plat.adcConv()
-#d = plat.adcRead()
- 
-plt.plot(d)
+plat.cpu1_blink(250)
+plat.cpu2_blink(500)

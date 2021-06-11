@@ -2,18 +2,16 @@ import serialp
 import time
 
 """
-Ideas
------
-For the interface module, we could only have generic commands. For instance,
-one command could be to initialize a GPIO, and set/reset its level. Then,
-we could create another module, which would be specific for a given
-application. One would be the buck converter, where some GPIOs are dedicated
-to specific stuff (relays, for instance).
-
-In this way, we keep this module generic, and the other module is application-
-specific.
-
 """
+
+class Commands:
+    """Just a list with the commands accepted by the platform.
+    """
+    def __init__(self):
+        self.cpu1_blink = 0x01
+        self.cpu2_blink = 0x02
+        self.cpu2_gpio = 0x03
+    
 
 class Interface:
     """A class to provide an interface to the C2000-based platform.
@@ -32,92 +30,79 @@ class Interface:
     """
     def __init__(self, com, baud, to):
         self.ser = serialp.serial.Serial(com, baud, to)
+        self.cmd = Commands()
 
-
-    def blink(self, t=1000):
-        """Changes the LED's blinking period.
+    def cpu1_blink(self, t=1000):
+        """Changes the blinking period of CPU1.
 
         Parameters
         ----------
         t : int
             Period, in milliseconds. By default, it is 1000.
 
-        """
-        t = serialp.conversions.u16_to_u8(t, msb=True)
+        Raises
+        ------
+        TypeError
+            If `t` is not of `int` type.
 
-        self.ser.send(0x01, t)
+        """
+        if type(t) is not int:
+            raise TypeError('`t` must be of int type')
+        
+        t = serialp.conversions.u16_to_u8(t, msb=True)
+        cmd = self.cmd.cpu1_blink
+
+        self.ser.send(cmd, t)
         
         
-    def relay_1(self, state):
-        """Sets the state of relay 1.
+    def cpu2_blink(self, t=1000):
+        """Changes the blinking period of CPU2.
 
         Parameters
         ----------
-        state : bool
-            State. If `True`, the relay is turned-on. If `False`, the relay is
-            turned off.
+        t : int
+            Period, in milliseconds. By default, it is 1000.
 
-        """
-        if state is True:
-            r = 1
-        else:
-            r = 0
+        Raises
+        ------
+        TypeError
+            If `t` is not of `int` type.
             
-        self.ser.send(0x02, [r])
+        """
+        if type(t) is not int:
+            raise TypeError('`t` must be of int type')
+        
+        t = serialp.conversions.u16_to_u8(t, msb=True)
+        cmd = self.cmd.cpu2_blink
+
+        self.ser.send(cmd, t)
 
     
-    def relay_2(self, state):
-        """Sets the state of relay 2.
+    def cpu2_gpio(self, gpio, state):
+        """Sets the level of a GPIO controlled by CPU2.
 
+        The GPIO must have been properly initialized, i.e., set as output and
+        ownership given by CPU1 to CPU2.
+        
         Parameters
         ----------
-        state : bool
-            State. If `True`, the relay is turned-on. If `False`, the relay is
-            turned off.
+        gpio : int
+            GPIO to be set/reset.
 
-        """
-        if state is True:
-            r = 1
-        else:
-            r = 0
-            
-        self.ser.send(0x03, [r])
+        state : int
+            State of GPIO. A value of 0 means the GPIO will be cleared, and a
+            value of 1 or any other value means the GPIO will be set. 
 
-
-    def adcConv(self):
-        """Converts and receives samples from the ADC. This is just a test.
-
-        Returns
-        -------
-        list
-            List with the ADC measurements.
-        """
-        self.ser.send(0x04)
-
-        time.sleep(0.2)
-
-        self.ser.send(0x05)
-        d = self.ser.read(0x05)
-
-        n = int( len(d) / 2 )
-        d = [[d[2*i], d[2*i+1]] for i in range(n)]
-
-        d = serialp.conversions.u8_to_u16(d, msb=False)
-
-        return d
-
-
-    def adcRead(self):
-        """
-
-        """
-        self.ser.send(0x05, [])
-        d = self.ser.read(0x05)
-
-        n = int( len(d) / 2 )
-        d = [[d[2*i], d[2*i+1]] for i in range(n)]
-
-        d = serialp.conversions.u8_to_u16(d, msb=False)
-
-        return d
+        Raises
+        ------
+        TypeError
+            If either `gpio` or `state` are not of `int` type.
         
+        """
+        if type(gpio) is not int or type(state) is not int:
+            raise TypeError('`gpio` and `state` must be of int type')
+
+        data = [gpio, state]
+        cmd = self.cmd.cpu2_gpio
+
+        self.ser.send(cmd, data)
