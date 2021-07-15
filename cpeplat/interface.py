@@ -11,7 +11,11 @@ class Commands:
         self.cpu1_blink = 0x01
         self.cpu2_blink = 0x02
         self.cpu2_gpio = 0x03
-        self.cpu1_read_ram = 0x04
+        self.cpu2_pwm_enable = 0x04
+        self.cpu2_pwm_disable = 0x05
+        self.cpu1_read_adc_a1 = 0x06
+        self.cpu1_read_adc_a5 = 0x07
+        self.cpu1_read_adc_b4 = 0x08
         
 
 class Interface:
@@ -109,12 +113,66 @@ class Interface:
         self.ser.send(cmd, data)
 
 
-    def cpu1_read_ram(self):
-
-        cmd = self.cmd.cpu1_read_ram
+    def cpu2_pwm_enable(self):
+        """Enables the PWM signal on CPU2.
+        """
+        cmd = self.cmd.cpu2_pwm_enable
 
         self.ser.send(cmd)
 
-        data = self.ser.read(cmd)
 
-        return data
+    def cpu2_pwm_disable(self):
+        """Disables the PWM signal on CPU2.
+        """
+        cmd = self.cmd.cpu2_pwm_disable
+
+        self.ser.send(cmd)
+
+
+    def cpu1_read_adc_a1(self):
+
+        cmd = self.cmd.cpu1_read_adc_a1
+
+        self.ser.send(cmd)
+
+        d = self.ser.read(cmd)
+        
+        n = int( len(d) / 2 )
+        d = [[d[2*i], d[2*i+1]] for i in range(n)]
+        
+        d = serialp.conversions.u8_to_u16(d, msb=False)
+
+        return d
+
+
+    def cpu1_read_adc_a5(self):
+
+        cmd = self.cmd.cpu1_read_adc_a5
+
+        self.ser.send(cmd)
+
+        d = self.ser.read(cmd)
+        
+        n = int( len(d) / 2 )
+        d = [[d[2*i], d[2*i+1]] for i in range(n)]
+        
+        d = serialp.conversions.u8_to_u16(d, msb=False)
+
+        return d
+
+    
+    def cpu1_read_adc_b4(self):
+
+        cmd = self.cmd.cpu1_read_adc_b4
+
+        self.ser.send(cmd)
+
+        d = self.ser.read(cmd)
+        
+        n = int( len(d) / 2 )
+        d = [[d[2*i], d[2*i+1]] for i in range(n)]
+        #print(d)
+        
+        d = serialp.conversions.u8_to_u16(d, msb=False)
+
+        return d

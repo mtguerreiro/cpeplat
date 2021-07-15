@@ -11,4 +11,5 @@ to = 1
 plat = cpe.interface.Interface(COM, baud, to)
 
 plat.cpu1_blink(250)
-plat.cpu2_blink(500)
+plat.cpu2_blink(250)
+
