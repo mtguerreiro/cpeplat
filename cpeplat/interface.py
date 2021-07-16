@@ -13,9 +13,8 @@ class Commands:
         self.cpu2_gpio = 0x03
         self.cpu2_pwm_enable = 0x04
         self.cpu2_pwm_disable = 0x05
-        self.cpu1_read_adc_a1 = 0x06
-        self.cpu1_read_adc_a5 = 0x07
-        self.cpu1_read_adc_b4 = 0x08
+        self.cpu1_adc_buffer_set = 0x06
+        self.cpu1_adc_buffer_read = 0x07
         
 
 class Interface:
@@ -129,50 +128,28 @@ class Interface:
         self.ser.send(cmd)
 
 
-    def cpu1_read_adc_a1(self):
+    def cpu1_adc_set_buffer(self, adc, size):
 
-        cmd = self.cmd.cpu1_read_adc_a1
+        cmd = self.cmd.cpu1_adc_buffer_set
 
-        self.ser.send(cmd)
+        adc = adc & 0xFF
+        size = serialp.conversions.u16_to_u8(size, msb=True)
 
-        d = self.ser.read(cmd)
-        
-        n = int( len(d) / 2 )
-        d = [[d[2*i], d[2*i+1]] for i in range(n)]
-        
-        d = serialp.conversions.u8_to_u16(d, msb=False)
+        data = [adc, size[0], size[1]]
 
-        return d
-
-
-    def cpu1_read_adc_a5(self):
-
-        cmd = self.cmd.cpu1_read_adc_a5
-
-        self.ser.send(cmd)
-
-        d = self.ser.read(cmd)
-        
-        n = int( len(d) / 2 )
-        d = [[d[2*i], d[2*i+1]] for i in range(n)]
-        
-        d = serialp.conversions.u8_to_u16(d, msb=False)
-
-        return d
-
+        self.ser.send(cmd, data)
     
-    def cpu1_read_adc_b4(self):
 
-        cmd = self.cmd.cpu1_read_adc_b4
+    def cpu1_adc_read_buffer(self, adc):
 
-        self.ser.send(cmd)
+        cmd = self.cmd.cpu1_adc_buffer_read
+        data = [adc & 0xFF]
 
+        self.ser.send(cmd, data)
         d = self.ser.read(cmd)
-        
+
         n = int( len(d) / 2 )
         d = [[d[2*i], d[2*i+1]] for i in range(n)]
-        #print(d)
-        
         d = serialp.conversions.u8_to_u16(d, msb=False)
 
         return d
