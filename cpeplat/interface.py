@@ -112,12 +112,27 @@ class Interface:
         self.ser.send(cmd, data)
 
 
-    def cpu2_pwm_enable(self):
-        """Enables the PWM signal on CPU2.
-        """
-        cmd = self.cmd.cpu2_pwm_enable
+    def cpu2_pwm_enable(self, dc):
+        """Enables the PWM signal on CPU2, with the specified duty cycle.
 
-        self.ser.send(cmd)
+        Parameters
+        ----------
+        dc : float
+            The duty cycle, as a value between 0 and 1.
+            
+        """
+        if type(dc) is not float:
+            raise TypeError('`dc` must be of float type')
+
+        if dc > 1 or dc < 0:
+            raise ValueError('`dc` must be between 0 and 1')
+        
+        cmd = self.cmd.cpu2_pwm_enable
+        dc = int(dc * 499)
+
+        data = serialp.conversions.u16_to_u8(dc, msb=True)
+
+        self.ser.send(cmd, data)
 
 
     def cpu2_pwm_disable(self):
@@ -142,14 +157,22 @@ class Interface:
 
     def cpu1_adc_read_buffer(self, adc):
 
+        self.ser.serial.flushInput()
+
         cmd = self.cmd.cpu1_adc_buffer_read
         data = [adc & 0xFF]
 
         self.ser.send(cmd, data)
         d = self.ser.read(cmd)
 
-        n = int( len(d) / 2 )
-        d = [[d[2*i], d[2*i+1]] for i in range(n)]
-        d = serialp.conversions.u8_to_u16(d, msb=False)
+        if d:
+            print('ADC read: data received')
 
+            n = int( len(d) / 2 )
+            d = [[d[2*i], d[2*i+1]] for i in range(n)]
+            d = serialp.conversions.u8_to_u16(d, msb=False)
+        else:
+            print('ADC read: failed')
+            d = []
+        
         return d
