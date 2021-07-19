@@ -1,0 +1,465 @@
+[-0.00210001055, 0.125]
+[-0.00210001055, 0.125]
+[-0.00210001055, 0.125]
+[-0.00210001055, 0.125]
+[-0.00210001055, 0.125]
+[-0.00210001055, 0.125]
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+[-0.00210001055, 0.125]
+[-0.00209999055, -0.0625]
+data object created file :
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+[-0.00210001055, 0.125]
+[-0.00209999055, -0.0625]
+[-0.00210001055, 0.125]
+[-0.00209999055, -0.0625]
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+FILEPATH From selection is: /Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+data object created file :/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+data object created file :/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+[-0.00210001055, 0.125]
+[-0.00210001055, 0.00625]
+[-0.00209999055, -0.0625]
+[-0.00209999055, -0.025]
+[-0.00209999055, -0.0625]
+[-0.00209999055, -0.025]
+data object created file :
+data object created file :
+data object created file :./teste.dat
+./teste.dat
+extension=dat
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+FILEPATH From selection is: /Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+data object created file :/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+data object created file :
+data object created file :/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+data object created file :/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+extension=dat
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+data object created file :/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+data object created file :/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+data object created file :/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+data object created file :/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 2
+i have added an input 3
+data object created file :/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 4
+i have added an input 4
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+data object created file :
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+data object created file :
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+data object created file :
+data object created file :/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+figure not removed
+figure not removed
+figure not removed
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+figure not removed
+figure not removed
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+figure not removed
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+figure not removed
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+figure not removed
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+figure not removed
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+removendo figura
+removendo figura
+removendo figura
+removendo figura
+removendo figura
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+removendo figura
+removendo figura
+removendo figura
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+removendo figura
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+removendo figura
+removendo figura
+removendo figura
+data object created file :
+data object created file :/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/C2tvout15v00000.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+removendo figura
+removendo figura
+data object created file :
+data object created file :
+data object created file :
+data object created file :
+data object created file :
+data object created file :
+data object created file :
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+removendo figura
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+data object created file :
+data object created file :./test.dat
+./test.dat
+extension=dat
+executei o read oscill
+number of colums:2
+i have added an input 0
+i have added an input 1
+removendo figura
+removendo figura
+removendo figura
+removendo figura
+data object created file :
+removendo figura

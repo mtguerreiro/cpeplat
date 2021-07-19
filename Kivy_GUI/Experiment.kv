@@ -1,0 +1,199 @@
+
+<Tabs>:
+    size_hint: 1, 1
+    do_default_tab: False
+  
+    TabbedPanelItem:
+        text: 'Analysis'
+        FloatLayout:
+            size_hint:(1,1)
+            id:form_layout
+            b_sy: 0.05
+            b_sx: 0.08
+            b_px_off:0.0
+            b_py_off:0.95
+            Button:
+                id: exp_btn
+                text: 'Export'
+                size_hint: self.parent.b_sx, self.parent.b_sy
+                pos_hint: {'x':self.parent.b_px_off, 'y': self.parent.b_py_off}
+            Button:
+                id: save_btn
+                text: 'Save'
+                size_hint: self.parent.b_sx, self.parent.b_sy
+                pos_hint: {'x':self.parent.b_px_off+self.parent.b_sx, 'y': self.parent.b_py_off}
+            Button:
+                id: upd_btn
+                text: 'Update'
+                size_hint: self.parent.b_sx, self.parent.b_sy
+                pos_hint: {'x':self.parent.b_px_off+2*self.parent.b_sx, 'y':self.parent.b_py_off}    
+                on_press: root.update_graphs()
+            Button:
+                id: add_btn
+                text: 'Add Src'
+                size_hint: self.parent.b_sx, self.parent.b_sy
+                pos_hint: {'x':self.parent.b_px_off+3*self.parent.b_sx, 'y':self.parent.b_py_off} 
+                on_press: root.add_source()
+            Button:
+                id: rem_btn
+                text: 'Rem Src'
+                size_hint: self.parent.b_sx, self.parent.b_sy
+                pos_hint: {'x':self.parent.b_px_off+4*self.parent.b_sx, 'y':self.parent.b_py_off} 
+                on_press: root.remove_source()
+            Button:
+                id: save_cfg
+                text: 'Save Cfg'
+                size_hint: self.parent.b_sx, self.parent.b_sy
+                pos_hint: {'x':self.parent.b_px_off+5*self.parent.b_sx, 'y':self.parent.b_py_off}    
+            Button:
+                id: import_cfg
+                text: 'Import Cfg'
+                size_hint: self.parent.b_sx, self.parent.b_sy
+                pos_hint: {'x':self.parent.b_px_off+6*self.parent.b_sx, 'y':self.parent.b_py_off}    
+
+  
+  
+          
+<FileHeader@BoxLayout>
+    id: FileHeader
+    size_hint_y:0.03
+    orientation: 'vertical'
+    GridLayout:
+        cols:4
+        Label:
+            id:src_n
+            text:'Source:'
+            font_size:22
+            size_hint_x:None          
+            width: 100
+        TextInput
+            id: get_file
+            size_hint_x:None
+            padding: [0, (self.height-self.line_height)/2]
+            font_size:22
+            multiline: False
+            width:600
+            on_text_validate: root.load_text_input()
+        Button:
+            text: 'Load'
+            font_size: 16
+            size_hint_x:None
+            width:100
+            on_press: root.open_popup()
+        Button:
+            text: 'Del'
+            font_size: 16
+            size_hint_x:None
+            width:100
+            on_press: root.remove()
+
+    
+             
+        
+    
+<InputsHeader@BoxLayout>
+    id:InputsHeader
+    size_hint_y:0.025
+    orientation:'vertical'
+    GridLayout:
+        cols:5
+        spacing: 1
+        Label:
+            size_hint_x: None          
+            width: 200
+            font_size:18
+            text:''
+        Label:
+            size_hint_x: None          
+            width: 150
+            font_size:18
+            text:'Col Number'
+        Label:
+            text:'Label' 
+            font_size:18
+            size_hint_x: None          
+            width: 150
+        Label:
+            text:'y_scale'
+            font_size:18
+            size_hint_x: None          
+            width: 150
+        Label:
+            text:'Show'
+            font_size:18
+            size_hint_x: None          
+            width: 150
+            
+<ChooseInputs@GridLayout>
+    id:grid
+    cols:5
+    spacing: 1
+    Label:
+        size_hint_x: None          
+        width: 200
+        font_size:18
+        text:''
+    Label:
+        id: col_num
+        text:'0'
+        font_size:18
+        size_hint_x: None          
+        width: 150
+    TextInput:
+        id:label_input
+        text:'' 
+        padding: [0, (self.height-self.line_height)/2]
+        font_size:22
+        readonly: False  
+        size_hint_x: None          
+        width: 150
+    TextInput:
+        id:scale_input
+        text:'1' 
+        padding: [0,(self.height-self.line_height)/2]
+        font_size:22
+        readonly: False  
+        size_hint_x: None          
+        width: 150
+    CheckBox:
+        size_hint_x: None          
+        width: 150
+        id:checkbox_show
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1
+            Rectangle:                      
+                pos:self.center_x-9, self.center_y-13
+                size:24,24
+
+<FileChoose@BoxLayout>
+    orientation:'vertical'
+    
+
+        
+
+            
+            
+<FileChoosePopup>:
+    title: "Choose a .CSV File"
+    size_hint: .9, .9
+    auto_dismiss: False
+
+    BoxLayout:
+        orientation: "vertical"
+        FileChooser:
+            id: filechooser
+            FileChooserIconLayout
+
+        BoxLayout:
+            size_hint: (1, 0.1)
+            pos_hint: {'center_x': .25, 'center_y': .5}
+            spacing: 20
+            Button:
+                text: "Cancel"
+                on_release: root.dismiss()
+            Button:
+                text: "Load"
+                on_release: root.load(filechooser.selection)
+                id: ldbtn
+                disabled: True if filechooser.selection==[] else False

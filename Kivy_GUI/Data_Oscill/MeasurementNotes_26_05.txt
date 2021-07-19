@@ -1,0 +1,26 @@
+# Notes Measurements from 26.05 (by Moritz&Marco):
+
+Used Setup: duty = 0.25 (const), Rout = 0.666Ohm
+
+
+1. Transient Behaviour:
+-Output Voltage for 15V und 25V (file name: tvout_15V/25V C1: Vout C2: Vout_meas)
+-Input Voltage for 15V (file name: tvin-15v / Channel1: Vin, C2: Vin_meas)
+-Inductance Current (Voltage) file: tI-15V (C1: Vout, C2: V_current)
+2. Steady State:
+
+-output Voltage (file: ssvout)
+-input Voltage (file: ssvin)
+
+For Switching Delay Calculation:
+-PWM_L and GateLow
+-PWM_L and VDS
+-GateLow and VDS
+
+
+3. MultiMeter Measurments:
+
+Vin = 14,89V
+Vout = 3.370V
+Iout = 5.54A
+V_Relais = 17.5mV

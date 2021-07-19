@@ -1,0 +1,416 @@
+
+<Tabs>:
+    size_hint: 1, 1
+    do_default_tab: False
+  
+    TabbedPanelItem:
+        text: 'Analysis'
+        FloatLayout:
+            id:float_lo_analysis
+            b_sy: 0.075
+            b_sx: 0.15
+            b_px_off:0.0
+            b_py_off:0.925
+            text_in_x_size:0.25
+            text_in_y_size:0.03
+            text_in_x_pos:0.01
+            text_in_y_pos:0.6
+            lb_sx:0.03
+            lb_sy:0.015
+
+            Button:
+                id: exp_btn
+                text: 'Export'
+                size_hint: self.parent.b_sx, self.parent.b_sy
+                pos_hint: {'x':self.parent.b_px_off, 'y': self.parent.b_py_off}
+            Button:
+                id: save_btn
+                text: 'Save'
+                size_hint: self.parent.b_sx, self.parent.b_sy
+                pos_hint: {'x':self.parent.b_px_off+self.parent.b_sx, 'y': .925}
+            Button:
+                id: upd_btn
+                text: 'Update'
+                size_hint: self.parent.b_sx, self.parent.b_sy
+                pos_hint: {'x':.30, 'y': .925}    
+                on_press: root.update_graphs()
+                     
+            
+            TextInput:
+                id: file_name
+                padding: [0, (self.height-self.line_height)/2]
+                font_size:22
+                text: "Last_Experiment_Data"
+                readonly: True     
+                size_hint_x: self.parent.text_in_x_size
+                size_hint_y: self.parent.text_in_y_size
+                pos_hint: {'x':self.parent.text_in_x_pos, 'y': self.parent.text_in_y_pos+self.parent.text_in_y_size+0.02}        
+                canvas.before:
+                    Color:
+                        rgba:.5, .5, .5, 1
+                    Line:
+                        width: 2
+                        points: self.x-10,self.y-10,self.x-10,self.top+10,self.right+10,self.top+10,self.right+10,self.y-10,self.x-10,self.y-10         
+
+            TextInput:
+                id: get_file
+                padding: [0, (self.height-self.line_height)/2]
+                font_size:22
+                readonly: False
+                text:'/Users/nits/Documents/GUI_PROJECT/cpeplat/Kivy_GUI/Data_Oscill/test.dat'
+                size_hint_x: self.parent.text_in_x_size
+                size_hint_y: self.parent.text_in_y_size
+                pos_hint: {'x':self.parent.text_in_x_pos, 'y': self.parent.text_in_y_pos}
+                
+                canvas.before:
+                    Color:
+                        rgba:.5, .5, .5, 1
+                    Line:
+                        width: 2
+                        points: self.x-10,self.y-10,self.x-10,self.top+10,self.right+10,self.top+10,self.right+10,self.y-10,self.x-10,self.y-10
+              
+            Button:
+                text: 'Load'
+                font_size: 16
+                size_hint_x: self.parent.lb_sx
+                size_hint_y: self.parent.lb_sy
+                pos_hint: {'x':0.23, 'y': 0.6075}  
+                on_press: root.open_popup()
+                    
+                    
+            TextInput:
+                id: get_file2
+                padding: [0, (self.height-self.line_height)/2]
+                font_size:22
+                readonly: False      
+                size_hint_x: self.parent.text_in_x_size
+                size_hint_y: self.parent.text_in_y_size
+                pos_hint: {'x':self.parent.text_in_x_pos, 'y': self.parent.text_in_y_pos-self.parent.text_in_y_size-0.02}        
+                canvas.before:
+                    Color:
+                        rgba:.5, .5, .5, 1
+                    Line:
+                        width: 2
+                        points: self.x-10,self.y-10,self.x-10,self.top+10,self.right+10,self.top+10,self.right+10,self.y-10,self.x-10,self.y-10         
+                        
+            Button:
+                text: 'Load'
+                font_size: 16
+                size_hint_x: self.parent.lb_sx
+                size_hint_y: self.parent.lb_sy
+                pos_hint: {'x':0.23, 'y': .5575}  
+                on_press: root.open_popup2()
+                
+            TextInput:
+                id: y_scale1
+                padding: [0, (self.height-self.line_height)/2]
+                font_size:22
+                readonly: False      
+                size_hint_x: 0.05
+                size_hint_y: self.parent.text_in_y_size
+                pos_hint: {'x':self.parent.text_in_x_pos+self.parent.text_in_x_size+0.012, 'y': self.parent.text_in_y_pos+self.parent.text_in_y_size+0.02}        
+                canvas.before:
+                    Color:
+                        rgba:.5, .5, .5, 1
+                    Line:
+                        width: 2
+                        points: self.x-10,self.y-10,self.x-10,self.top+10,self.right+10,self.top+10,self.right+10,self.y-10,self.x-10,self.y-10
+                
+            TextInput:
+                id: y_scale2
+                padding: [0, (self.height-self.line_height)/2]
+                font_size:22
+                readonly: False      
+                size_hint_x: 0.05
+                size_hint_y: self.parent.text_in_y_size
+                pos_hint: {'x':self.parent.text_in_x_pos+self.parent.text_in_x_size+0.012, 'y': self.parent.text_in_y_pos}        
+                canvas.before:
+                    Color:
+                        rgba:.5, .5, .5, 1
+                    Line:
+                        width: 2
+                        points: self.x-10,self.y-10,self.x-10,self.top+10,self.right+10,self.top+10,self.right+10,self.y-10,self.x-10,self.y-10
+            TextInput:
+                id: y_scale3
+                padding: [0, (self.height-self.line_height)/2]
+                font_size:22
+                readonly: False      
+                size_hint_x: 0.05
+                size_hint_y: self.parent.text_in_y_size
+                pos_hint: {'x':self.parent.text_in_x_pos+self.parent.text_in_x_size+0.012, 'y': self.parent.text_in_y_pos-self.parent.text_in_y_size-0.02}        
+                canvas.before:
+                    Color:
+                        rgba:.5, .5, .5, 1
+                    Line:
+                        width: 2
+                        points: self.x-10,self.y-10,self.x-10,self.top+10,self.right+10,self.top+10,self.right+10,self.y-10,self.x-10,self.y-10
+            
+            TextInput:
+                id: label_name1
+                padding: [0, (self.height-self.line_height)/2]
+                font_size:22
+                readonly: False      
+                size_hint_x: 0.05
+                size_hint_y: self.parent.text_in_y_size
+                pos_hint: {'x':self.parent.text_in_x_pos+self.parent.text_in_x_size+0.074   , 'y': self.parent.text_in_y_pos+self.parent.text_in_y_size+0.02}        
+                canvas.before:
+                    Color:
+                        rgba:.5, .5, .5, 1  
+                    Line:
+                        width: 2
+                        points: self.x-10,self.y-10,self.x-10,self.top+10,self.right+10,self.top+10,self.right+10,self.y-10,self.x-10,self.y-10
+            TextInput:
+                id: label_name2
+                padding: [0, (self.height-self.line_height)/2]
+                font_size:22
+                readonly: False      
+                size_hint_x: 0.05
+                size_hint_y: self.parent.text_in_y_size
+                pos_hint: {'x':self.parent.text_in_x_pos+self.parent.text_in_x_size+0.074, 'y': self.parent.text_in_y_pos}        
+                canvas.before:
+                    Color:
+                        rgba:.5, .5, .5, 1
+                    Line:
+                        width: 2
+                        points: self.x-10,self.y-10,self.x-10,self.top+10,self.right+10,self.top+10,self.right+10,self.y-10,self.x-10,self.y-10
+             
+            TextInput:
+                id: label_name3
+                padding: [0, (self.height-self.line_height)/2]
+                font_size:22
+                readonly: False      
+                size_hint_x: 0.05
+                size_hint_y: self.parent.text_in_y_size
+                pos_hint: {'x':self.parent.text_in_x_pos+self.parent.text_in_x_size+0.074   , 'y': self.parent.text_in_y_pos-self.parent.text_in_y_size-0.02}        
+                canvas.before:
+                    Color:
+                        rgba:.5, .5, .5, 1  
+                    Line:
+                        width: 2
+                        points: self.x-10,self.y-10,self.x-10,self.top+10,self.right+10,self.top+10,self.right+10,self.y-10,self.x-10,self.y-10
+             
+            
+            
+            CheckBox:
+                id:checkbox1
+    
+                size_hint: 0.015,0.015
+                pos_hint: {'x':self.parent.text_in_x_pos+self.parent.text_in_x_size+0.156   , 'y': self.parent.text_in_y_pos+self.parent.text_in_y_size+0.022} 
+                on_press:root.activate_graph3()
+                    
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, 1, 1
+                    Rectangle:
+                          
+                        pos:self.center_x-9, self.center_y-9
+                        size:24,24
+                canvas:
+                    Color:
+                        rgba:.5, .5, .5, 1
+                    Line:
+                        width: 2
+                        points: self.x-45,self.y-12,self.x-45,self.top+24,self.right+35,self.top+24,self.right+35,self.y-12,self.x-45  ,self.y-12      
+            CheckBox:
+                id: checkbox2
+                size_hint: 0.015,0.015
+                pos_hint: {'x':self.parent.text_in_x_pos+self.parent.text_in_x_size+0.156   , 'y': self.parent.text_in_y_pos+0.002}        
+                on_press:root.activate_graph2() 
+                   
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, 1, 1
+                    Rectangle:
+                          
+                        pos:self.center_x-9, self.center_y-9
+                        size:24,24
+                canvas:
+                    Color:
+                        rgba:.5, .5, .5, 1
+                    Line:
+                        width: 2
+                        points: self.x-45,self.y-12,self.x-45,self.top+24,self.right+35,self.top+24,self.right+35,self.y-12,self.x-45  ,self.y-12   
+            
+            
+            
+            
+            
+            CheckBox:
+                id:checkbox3
+    
+                size_hint: 0.015,0.015
+                pos_hint: {'x':self.parent.text_in_x_pos+self.parent.text_in_x_size+0.156   , 'y': self.parent.text_in_y_pos-self.parent.text_in_y_size-0.02+0.002} 
+                on_press:root.activate_graph3()
+                    
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, 1, 1
+                    Rectangle:
+                          
+                        pos:self.center_x-9, self.center_y-9
+                        size:24,24
+                canvas:
+                    Color:
+                        rgba:.5, .5, .5, 1
+                    Line:
+                        width: 2
+                        points: self.x-45,self.y-12,self.x-45,self.top+24,self.right+35,self.top+24,self.right+35,self.y-12,self.x-45  ,self.y-12   
+            
+            
+            Label:
+                text: 'Sources'
+                size_hint_x: 0.03
+                size_hint_y: 0.015
+                pos_hint: {'x':.12, 'y': .70} 
+            Label:
+                text: 'y_Scale'
+                size_hint_x: 0.03
+                size_hint_y: 0.015
+                pos_hint: {'x':.285, 'y': .7} 
+            Label:
+                text: 'Label'
+                size_hint_x: 0.03
+                size_hint_y: 0.015
+                pos_hint: {'x':.35, 'y': .7} 
+            Label:
+                text: 'Show'
+                size_hint_x: 0.03
+                size_hint_y: 0.015
+                pos_hint: {'x':.405, 'y': .7} 
+                
+            Label:
+                text: 'Plot Settings:'
+                size_hint_x: 0.06
+                size_hint_y: 0.03
+                pos_hint: {'x':.038, 'y': .4} 
+            Label:
+                text: 'y-axis Label:'
+                size_hint_x: 0.03
+                size_hint_y: 0.014
+                pos_hint: {'x':.05, 'y': .3}
+            Label:
+                text: 'y-axis Label:'
+                size_hint_x: 0.03
+                size_hint_y: 0.014
+                pos_hint: {'x':.05, 'y': .2}
+                
+              
+            TextInput:
+                id: y_label
+                padding: [0, (self.height-self.line_height)/2]
+                font_size:22
+                readonly: False      
+                size_hint_x: 0.25
+                size_hint_y: self.parent.text_in_y_size
+                pos_hint: {'x':.05+.08, 'y': .192}
+                
+                canvas.before:
+                    Color:
+                        rgba: .5, .5, .5, 1  
+                    Line:
+                        width: 2
+                        points: self.x-10,self.y-10,self.x-10,self.top+10,self.right+10,self.top+10,self.right+10,self.y-10,self.x-10,self.y-10
+            TextInput:
+                id: x_label
+                padding: [0, (self.height-self.line_height)/2]
+                font_size:22
+                readonly: False      
+                size_hint_x: 0.25
+                size_hint_y: self.parent.text_in_y_size
+                pos_hint: {'x':.05+.08, 'y': .292}
+                
+                canvas.before:
+                    Color:
+                        rgba: .5, .5, .5, 1   
+                    Line:
+                        width: 2
+                        points: self.x-10,self.y-10,self.x-10,self.top+10,self.right+10,self.top+10,self.right+10,self.y-10,self.x-10,self.y-10
+            InputsHeader:
+                pos_hint: {'y': 0.40, 'right':1}
+                size_hint:0.4,0.1
+            ChooseInputs:
+                pos_hint: {'y': 0.38, 'right':1}
+                size_hint:0.4,0.1
+
+<InputsHeader@BoxLayout>
+    orientation:'vertical'
+    GridLayout:
+        cols:4
+        spacing: 0.2
+        Label:
+            text:'Col Number'
+            width:20
+        Label:
+            text:'Label' 
+            width:40 
+        Label:
+            text:'y_scale'
+            width:20
+        Label:
+            text:'Show'
+            width:20
+            
+<ChooseInputs@BoxLayout>
+    orientation:'vertical'
+    GridLayout:
+        id:grid
+        cols:4
+        spacing: 0.2
+        Label:
+            id:col_num
+            width:10
+        TextInput:
+            id:label_input
+            text:'' 
+            padding: [0, (self.height-self.line_height)/2]
+            font_size:22
+            readonly: False  
+            width:40 
+            height:5
+        TextInput:
+            id:scale_input
+            text:'' 
+            padding: [0, (self.height-self.line_height)/2]
+            font_size:22
+            readonly: False  
+            width:10
+        CheckBox:
+            id:checkbox_show
+            canvas.before:
+                Color:
+                    rgba: 1, 1, 1, 1
+                Rectangle:                      
+                    pos:self.center_x-9, self.center_y-9
+                    size:24,24
+
+<FileChoose@BoxLayout>
+    orientation:'vertical'
+    
+
+        
+
+            
+            
+<FileChoosePopup>:
+    title: "Choose a .CSV File"
+    size_hint: .9, .9
+    auto_dismiss: False
+
+    BoxLayout:
+        orientation: "vertical"
+        FileChooser:
+            id: filechooser
+            FileChooserIconLayout
+
+        BoxLayout:
+            size_hint: (1, 0.1)
+            pos_hint: {'center_x': .25, 'center_y': .5}
+            spacing: 20
+            Button:
+                text: "Cancel"
+                on_release: root.dismiss()
+            Button:
+                text: "Load"
+                on_release: root.load(filechooser.selection)
+                id: ldbtn
+                disabled: True if filechooser.selection==[] else False
