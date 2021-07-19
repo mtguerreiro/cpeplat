@@ -9,12 +9,14 @@ class Commands:
     """
     def __init__(self):
         self.cpu1_blink = 0x01
-        self.cpu2_blink = 0x02
-        self.cpu2_gpio = 0x03
-        self.cpu2_pwm_enable = 0x04
-        self.cpu2_pwm_disable = 0x05
-        self.cpu1_adc_buffer_set = 0x06
-        self.cpu1_adc_buffer_read = 0x07
+        self.cpu2_status = 0x02
+        self.cpu2_status_clear = 0x03
+        self.cpu2_blink = 0x04
+        self.cpu2_gpio = 0x05
+        self.cpu2_pwm_enable = 0x06
+        self.cpu2_pwm_disable = 0x07
+        self.cpu1_adc_buffer_set = 0x08
+        self.cpu1_adc_buffer_read = 0x09
         
 
 class Interface:
@@ -35,6 +37,7 @@ class Interface:
     def __init__(self, com, baud, to):
         self.ser = serialp.serial.Serial(com, baud, to)
         self.cmd = Commands()
+        
 
     def cpu1_blink(self, t=1000):
         """Changes the blinking period of CPU1.
@@ -58,6 +61,32 @@ class Interface:
 
         self.ser.send(cmd, t)
         
+
+    def cpu2_status(self):
+        """Gets the status of CPU2.
+
+        Returns
+        -------
+        int
+            Status of CPU2.
+            
+        """
+        cmd = self.cmd.cpu2_status
+
+        self.ser.send(cmd)
+        status = self.ser.read(cmd)
+        status = serialp.conversions.u8_to_u16(status)
+
+        return status
+
+
+    def cpu2_status_clear(self):
+        """Clears the status of CPU2.            
+        """
+        cmd = self.cmd.cpu2_status_clear
+
+        self.ser.send(cmd)
+    
         
     def cpu2_blink(self, t=1000):
         """Changes the blinking period of CPU2.
@@ -119,8 +148,19 @@ class Interface:
         ----------
         dc : float
             The duty cycle, as a value between 0 and 1.
+
+        Raises
+        ------
+        TypeError
+            If `dc` is not of `float` type.
+
+        ValueError
+            If `dc` is not a value between 0 and 1.
             
         """
+        if type(dc) is int:
+            if dc == 0: dc = 0.0
+        
         if type(dc) is not float:
             raise TypeError('`dc` must be of float type')
 
@@ -129,8 +169,10 @@ class Interface:
         
         cmd = self.cmd.cpu2_pwm_enable
         dc = int(dc * 499)
+        print('Duty cycle: {:}'.format(dc))
 
         data = serialp.conversions.u16_to_u8(dc, msb=True)
+        print('TX data: {:}'.format(data))
 
         self.ser.send(cmd, data)
 
@@ -157,7 +199,8 @@ class Interface:
 
     def cpu1_adc_read_buffer(self, adc):
 
-        self.ser.serial.flushInput()
+        while self.ser.serial.in_waiting != 0:
+            self.ser.serial.flushInput()
 
         cmd = self.cmd.cpu1_adc_buffer_read
         data = [adc & 0xFF]
