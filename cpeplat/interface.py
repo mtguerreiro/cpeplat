@@ -116,8 +116,14 @@ class Interface:
             print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. Status not cleared.'.format(funcname))
             return 1
 
-        print('{:}|\tCPU2 status cleared.'.format(funcname))
-        
+        status = serialp.conversions.u8_to_u16(data[1:], msb=True)        
+
+        if status != 0:
+            print('{:}|\tCommand failed. CPU2 status {:}.'.format(funcname, status))
+            return 1
+
+        print('{:}|\tCPU2 status cleared. Status {:}.'.format(funcname, status))
+
         return 0
             
         
@@ -245,9 +251,11 @@ class Interface:
             print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. PWM not set.'.format(funcname))
             return data[0]
 
-        if data[0] != 0 and data[0] != 1:
-            print('{:}|\tCommand failed. Error: {:}.'.format(funcname, data[0]))
-            return data[0]
+        status = serialp.conversions.u8_to_u16(data[1:], msb=True)   
+
+        if status != 0:
+            print('{:}|\tCommand failed. Error: {:}.'.format(funcname, status))
+            return status
 
         print('{:}|\tPWM set. Duty cycle: {:.4f}.'.format(funcname, dc/499))
 
