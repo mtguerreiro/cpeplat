@@ -21,12 +21,12 @@ plat.cpu1_blink(250)
 plat.cpu2_blink(250)
 
 # Sets ADC buffers
-plat.cpu1_adc_buffer_set(0, 1000)
-plat.cpu1_adc_buffer_set(1, 1000)
-plat.cpu1_adc_buffer_set(2, 1000)
-plat.cpu1_adc_buffer_set(3, 1000)
-plat.cpu1_adc_buffer_set(4, 1000)
-plat.cpu1_adc_buffer_set(5, 1000)
+plat.cpu1_adc_buffer_set(0, 2000)
+plat.cpu1_adc_buffer_set(1, 2000)
+plat.cpu1_adc_buffer_set(2, 2000)
+plat.cpu1_adc_buffer_set(3, 2000)
+plat.cpu1_adc_buffer_set(4, 2000)
+plat.cpu1_adc_buffer_set(5, 2000)
 
 # --- Experiment ---
 def experiment(dc):
