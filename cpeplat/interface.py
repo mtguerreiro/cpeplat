@@ -186,7 +186,18 @@ class Interface:
 
 
     def cpu1_adc_set_buffer(self, adc, size):
+        """Sets the ADC buffer.
 
+        Parameters
+        ----------
+        adc : int
+            ADC buffer to set. It must be an integer between 0 and `N`, where
+            `N` is the maximum number of ADC buffers.
+
+        size : int
+            Buffer size, in number of samples.
+        
+        """
         cmd = self.cmd.cpu1_adc_buffer_set
 
         adc = adc & 0xFF
@@ -198,9 +209,25 @@ class Interface:
     
 
     def cpu1_adc_read_buffer(self, adc):
+        """Reads an ADC buffer.
 
+        Parameters
+        ----------
+        adc : int
+            ADC buffer to set. It must be an integer between 0 and `N`, where
+            `N` is the maximum number of ADC buffers.
+
+        Returns
+        -------
+        list
+            ADC samples. The size of the list depends on how many samples were
+            recorded, but will be at most `N`, where `N` is the buffer size.
+
+        """
+        # Flushes input, in case we had any previous communication error
         while self.ser.serial.in_waiting != 0:
             self.ser.serial.flushInput()
+            time.sleep(0.1)
 
         cmd = self.cmd.cpu1_adc_buffer_read
         data = [adc & 0xFF]
@@ -210,7 +237,6 @@ class Interface:
 
         if d:
             print('ADC read: data received')
-
             n = int( len(d) / 2 )
             d = [[d[2*i], d[2*i+1]] for i in range(n)]
             d = serialp.conversions.u8_to_u16(d, msb=False)
