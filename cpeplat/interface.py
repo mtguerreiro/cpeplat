@@ -75,7 +75,7 @@ class Interface:
 
         self.ser.send(cmd)
         status = self.ser.read(cmd)
-        status = serialp.conversions.u8_to_u16(status)
+        status = serialp.conversions.u8_to_u16(status, msb=True)
 
         return status
 
