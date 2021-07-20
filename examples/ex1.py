@@ -21,12 +21,12 @@ plat.cpu1_blink(250)
 plat.cpu2_blink(250)
 
 # Sets ADC buffers
-plat.cpu1_adc_set_buffer(0, 1000)
-plat.cpu1_adc_set_buffer(1, 1000)
-plat.cpu1_adc_set_buffer(2, 1000)
-plat.cpu1_adc_set_buffer(3, 1000)
-plat.cpu1_adc_set_buffer(4, 1000)
-plat.cpu1_adc_set_buffer(5, 1000)
+plat.cpu1_adc_buffer_set(0, 1000)
+plat.cpu1_adc_buffer_set(1, 1000)
+plat.cpu1_adc_buffer_set(2, 1000)
+plat.cpu1_adc_buffer_set(3, 1000)
+plat.cpu1_adc_buffer_set(4, 1000)
+plat.cpu1_adc_buffer_set(5, 1000)
 
 # --- Experiment ---
 def experiment(dc):
@@ -48,22 +48,22 @@ def experiment(dc):
     plat.cpu2_gpio(9, 0)
     time.sleep(1)
 
-    v_in = plat.cpu1_adc_read_buffer(0)
+    v_in = plat.cpu1_adc_buffer_read(0)
     v_in = np.array(v_in)
 
-    v_in_buck = plat.cpu1_adc_read_buffer(1)
+    v_in_buck = plat.cpu1_adc_buffer_read(1)
     v_in_buck = np.array(v_in_buck)
 
-    v_out = plat.cpu1_adc_read_buffer(2)
+    v_out = plat.cpu1_adc_buffer_read(2)
     v_out = np.array(v_out)
 
-    v_out_buck = plat.cpu1_adc_read_buffer(3)
+    v_out_buck = plat.cpu1_adc_buffer_read(3)
     v_out_buck = np.array(v_out_buck)
     
-    il = plat.cpu1_adc_read_buffer(4)
+    il = plat.cpu1_adc_buffer_read(4)
     il = np.array(il)
 
-    il_avg = plat.cpu1_adc_read_buffer(5)
+    il_avg = plat.cpu1_adc_buffer_read(5)
     il_avg = np.array(il_avg)
 
     return v_in, v_in_buck, v_out, v_out_buck, il, il_avg
@@ -85,22 +85,22 @@ def relays_off():
 
 def read_adcs():
     # Reads ADC measurements
-    v_in = plat.cpu1_adc_read_buffer(0)
+    v_in = plat.cpu1_adc_buffer_read(0)
     v_in = np.array(v_in)
 
-    v_in_buck = plat.cpu1_adc_read_buffer(1)
+    v_in_buck = plat.cpu1_adc_buffer_read(1)
     v_in_buck = np.array(v_in_buck)
 
-    v_out = plat.cpu1_adc_read_buffer(2)
+    v_out = plat.cpu1_adc_buffer_read(2)
     v_out = np.array(v_out)
 
-    v_out_buck = plat.cpu1_adc_read_buffer(3)
+    v_out_buck = plat.cpu1_adc_buffer_read(3)
     v_out_buck = np.array(v_out_buck)
     
-    il = plat.cpu1_adc_read_buffer(4)
+    il = plat.cpu1_adc_buffer_read(4)
     il = np.array(il)
 
-    il_avg = plat.cpu1_adc_read_buffer(5)
+    il_avg = plat.cpu1_adc_buffer_read(5)
     il_avg = np.array(il_avg)
 
     return v_in, v_in_buck, v_out, v_out_buck, il, il_avg

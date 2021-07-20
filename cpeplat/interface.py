@@ -17,6 +17,7 @@ class Commands:
         self.cpu2_pwm_disable = 0x07
         self.cpu1_adc_buffer_set = 0x08
         self.cpu1_adc_buffer_read = 0x09
+        self.cpu2_buffer_read = 0x0A
         
 
 class Interface:
@@ -292,7 +293,7 @@ class Interface:
         return 0
     
 
-    def cpu1_adc_set_buffer(self, adc, size):
+    def cpu1_adc_buffer_set(self, adc, size):
         """Sets the ADC buffer.
 
         Parameters
@@ -317,7 +318,7 @@ class Interface:
             If either `adc` or `size` is not of `int` type.
         
         """
-        funcname = Interface.cpu1_adc_set_buffer.__name__
+        funcname = Interface.cpu1_adc_buffer_set.__name__
         if type(adc) is not int or type(size) is not int:
             raise TypeError('`adc` and `size` must be of int type.')
         
@@ -344,8 +345,7 @@ class Interface:
         return data[0]
 
 
-    def cpu1_adc_read_buffer(self, adc):
-        funcname = Interface.cpu1_adc_read_buffer.__name__
+    def cpu1_adc_buffer_read(self, adc):
         """Reads an ADC buffer.
 
         Parameters
@@ -369,6 +369,7 @@ class Interface:
             If `adc` is not of `int` type.
             
         """
+        funcname = Interface.cpu1_adc_buffer_read.__name__
         if type(adc) is not int:
             raise TypeError('`adc` must of of int type.')
         
@@ -393,6 +394,51 @@ class Interface:
 
         n = int( len(data) / 2 )
         print('{:}|\tADC {:}: data received. Samples: {:}'.format(funcname, adc, n))
+
+        if n == 0:
+            data = []
+        else:
+            data = [[data[2*i], data[2*i+1]] for i in range(n)]
+            data = serialp.conversions.u8_to_u16(data, msb=False)
+        
+        return data
+
+
+    def cpu2_buffer_read(self):
+        """Reads CPU2's buffer.
+
+
+        Returns
+        -------
+        list, int
+            CPU2 buffer, as a list. The size of the list depends on how many
+            samples were recorded, but will be at most `N`, where `N` is the
+            buffer size. Also, this function can return an integer. It returns
+            -1 if failed to communicate with CPU1 or a positive integer if
+            the command failed.
+            
+        """
+        funcname = Interface.cpu2_buffer_read.__name__
+        # Flushes input, in case we had any previous communication error
+        while self.ser.serial.in_waiting != 0:
+            self.ser.serial.flushInput()
+            time.sleep(0.1)
+
+        cmd = self.cmd.cpu2_buffer_read
+
+        self.ser.send(cmd)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tFailed to communicate with CPU1 or CPU2 buffer has been set to a size of 0.'.format(funcname))
+            return -1
+
+        if len(data) == 1:
+            print('{:}|\tCommand failed. Error: {:}.'.format(funcname, data[0]))
+            return data[0]
+
+        n = int( len(data) / 2 )
+        print('{:}|\tData received. Samples: {:}'.format(funcname, n))
 
         if n == 0:
             data = []
