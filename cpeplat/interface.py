@@ -129,7 +129,7 @@ class Interface:
         Raises
         ------
         TypeError
-            If either `gpio` or `state` are not of `int` type.
+            If either `gpio` or `state` is not of `int` type.
         
         """
         if type(gpio) is not int or type(state) is not int:
@@ -196,8 +196,16 @@ class Interface:
 
         size : int
             Buffer size, in number of samples.
+
+        Raises
+        ------
+        TypeError
+            If either `adc` or `size` is not of `int` type.
         
         """
+        if type(adc) is not int or type(size) is not int:
+            raise TypeError('`adc` and `size` must be of int type')
+        
         cmd = self.cmd.cpu1_adc_buffer_set
 
         adc = adc & 0xFF
@@ -223,7 +231,15 @@ class Interface:
             ADC samples. The size of the list depends on how many samples were
             recorded, but will be at most `N`, where `N` is the buffer size.
 
+        Raises
+        ------
+        TypeError
+            If `adc` is not of `int` type.
+            
         """
+        if type(adc) is not int:
+            raise TypeError('`adc` must of of int type')
+        
         # Flushes input, in case we had any previous communication error
         while self.ser.serial.in_waiting != 0:
             self.ser.serial.flushInput()
