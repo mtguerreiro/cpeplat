@@ -54,7 +54,7 @@ class Interface:
 
         """
         if type(t) is not int:
-            raise TypeError('`t` must be of int type')
+            raise TypeError('`t` must be of int type.')
         
         t = serialp.conversions.u16_to_u8(t, msb=True)
         cmd = self.cmd.cpu1_blink
@@ -68,25 +68,58 @@ class Interface:
         Returns
         -------
         int
-            Status of CPU2.
+            Status of CPU2, if received correctly. Otherwise, returns -1.
             
         """
+        funcname = Interface.cpu2_status.__name__
         cmd = self.cmd.cpu2_status
 
         self.ser.send(cmd)
-        status = self.ser.read(cmd)
-        status = serialp.conversions.u8_to_u16(status, msb=True)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tFailed to communicate with CPU1.'.format(funcname))
+            return -1
+        
+        if data[0] == 1:
+            print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. Status not read.'.format(funcname))
+            return -1
+
+        status = serialp.conversions.u8_to_u16(data[1:], msb=True)
+        print('{:}|\tCPU2 status: {:}'.format(funcname, status))
 
         return status
 
 
     def cpu2_status_clear(self):
-        """Clears the status of CPU2.            
+        """Clears the status of CPU2.
+
+        Returns
+        -------
+        int
+            Status of CPU2, which should be zero if the command worked.
+            Returns -1 if failed to communicate with CPU1 or a positive
+            integer if CPU1 returned an error.
+        
         """
+        funcname = Interface.cpu2_status_clear.__name__
         cmd = self.cmd.cpu2_status_clear
 
         self.ser.send(cmd)
-    
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tFailed to communicate with CPU1.'.format(funcname))
+            return -1
+
+        if data[0] == 1:
+            print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. Status not cleared.'.format(funcname))
+            return 1
+
+        print('{:}|\tCPU2 status cleared.'.format(funcname))
+        
+        return 0
+            
         
     def cpu2_blink(self, t=1000):
         """Changes the blinking period of CPU2.
@@ -103,7 +136,7 @@ class Interface:
             
         """
         if type(t) is not int:
-            raise TypeError('`t` must be of int type')
+            raise TypeError('`t` must be of int type.')
         
         t = serialp.conversions.u16_to_u8(t, msb=True)
         cmd = self.cmd.cpu2_blink
@@ -126,19 +159,40 @@ class Interface:
             State of GPIO. A value of 0 means the GPIO will be cleared, and a
             value of 1 or any other value means the GPIO will be set. 
 
+        Returns
+        -------
+        int
+            Status of command. If command was executed successfully, returns 0.
+            If there was an issue, will return -1 if failed to communicate with
+            CPU1 and a positive integer if CPU1 returned an error.
+        
         Raises
         ------
         TypeError
             If either `gpio` or `state` is not of `int` type.
         
         """
+        funcname = Interface.cpu2_gpio.__name__
         if type(gpio) is not int or type(state) is not int:
-            raise TypeError('`gpio` and `state` must be of int type')
+            raise TypeError('`gpio` and `state` must be of int type.')
 
         data = [gpio, state]
         cmd = self.cmd.cpu2_gpio
 
         self.ser.send(cmd, data)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tGPIO {:}: failed to communicate with CPU1.'.format(funcname, gpio))
+            return -1
+
+        if data[0] == 1:
+            print('{:}|\tGPIO {:}: communicated with CPU1 but CPU2 is unresponsive. GPIO not set.'.format(funcname, gpio))
+            return data[0]
+
+        print('{:}|\tGPIO {:}: GPIO set. State: {:}.'.format(funcname, gpio, state))
+
+        return 0
 
 
     def cpu2_pwm_enable(self, dc):
@@ -149,6 +203,13 @@ class Interface:
         dc : float
             The duty cycle, as a value between 0 and 1.
 
+        Returns
+        -------
+        int
+            Status of command. If command was executed successfully, returns 0.
+            If there was an issue, will return -1 if failed to communicate with
+            CPU1 and a positive integer if CPU1 returned an error.
+            
         Raises
         ------
         TypeError
@@ -158,32 +219,70 @@ class Interface:
             If `dc` is not a value between 0 and 1.
             
         """
+        funcname = Interface.cpu2_pwm_enable.__name__
         if type(dc) is int:
             if dc == 0: dc = 0.0
         
         if type(dc) is not float:
-            raise TypeError('`dc` must be of float type')
+            raise TypeError('`dc` must be of float type.')
 
         if dc > 1 or dc < 0:
-            raise ValueError('`dc` must be between 0 and 1')
+            raise ValueError('`dc` must be between 0 and 1.')
         
         cmd = self.cmd.cpu2_pwm_enable
         dc = int(dc * 499)
-        print('Duty cycle: {:}'.format(dc))
 
         data = serialp.conversions.u16_to_u8(dc, msb=True)
-        print('TX data: {:}'.format(data))
 
         self.ser.send(cmd, data)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tFailed to communicate with CPU1.'.format(funcname))
+            return -1
+
+        if data[0] == 1:
+            print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. PWM not set.'.format(funcname))
+            return data[0]
+
+        if data[0] != 0 and data[0] != 1:
+            print('{:}|\tCommand failed. Error: {:}.'.format(funcname, data[0]))
+            return data[0]
+
+        print('{:}|\tPWM set. Duty cycle: {:.4f}.'.format(funcname, dc/499))
+
+        return 0
 
 
     def cpu2_pwm_disable(self):
         """Disables the PWM signal on CPU2.
+
+        Returns
+        -------
+        int
+            Status of command. If command was executed successfully, returns 0.
+            If there was an issue, will return -1 if failed to communicate with
+            CPU1 and a positive integer if CPU1 returned an error.
+        
         """
+        funcname = Interface.cpu2_pwm_disable.__name__
         cmd = self.cmd.cpu2_pwm_disable
 
         self.ser.send(cmd)
+        data = self.ser.read(cmd)
 
+        if data == []:
+            print('{:}|\tFailed to communicate with CPU1.'.format(funcname))
+            return -1
+
+        if data[0] == 1:
+            print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. PWM not disabled.'.format(funcname))
+            return data[0]            
+
+        print('{:}|\tPWM disabled.'.format(funcname))
+
+        return 0
+    
 
     def cpu1_adc_set_buffer(self, adc, size):
         """Sets the ADC buffer.
@@ -197,26 +296,48 @@ class Interface:
         size : int
             Buffer size, in number of samples.
 
+        Returns
+        -------
+        int
+            Returns 0 if the command was processed successfully. Returns -1 if
+            could not communicate with CPU1 and returns a positive integer if
+            there was any other error (ADC number or buffer size).
+        
         Raises
         ------
         TypeError
             If either `adc` or `size` is not of `int` type.
         
         """
+        funcname = Interface.cpu1_adc_set_buffer.__name__
         if type(adc) is not int or type(size) is not int:
-            raise TypeError('`adc` and `size` must be of int type')
+            raise TypeError('`adc` and `size` must be of int type.')
         
         cmd = self.cmd.cpu1_adc_buffer_set
 
         adc = adc & 0xFF
-        size = serialp.conversions.u16_to_u8(size, msb=True)
+        size8 = serialp.conversions.u16_to_u8(size, msb=True)
 
-        data = [adc, size[0], size[1]]
+        data = [adc, size8[0], size8[1]]
 
         self.ser.send(cmd, data)
-    
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tADC {:}: failed to communicate with CPU1.'.format(funcname, adc))
+            return -1
+
+        if data[0] != 0:
+            print('{:}|\tADC {:}: command failed. Error: {:}.'.format(funcname, adc, data[0]))
+            return data[0]
+
+        print('{:}|\tADC {:}: buffer set. Size: {:}'.format(funcname, adc, size))
+
+        return data[0]
+
 
     def cpu1_adc_read_buffer(self, adc):
+        funcname = Interface.cpu1_adc_read_buffer.__name__
         """Reads an ADC buffer.
 
         Parameters
@@ -227,9 +348,12 @@ class Interface:
 
         Returns
         -------
-        list
-            ADC samples. The size of the list depends on how many samples were
-            recorded, but will be at most `N`, where `N` is the buffer size.
+        list, int
+            ADC samples, as a list. The size of the list depends on how many
+            samples were recorded, but will be at most `N`, where `N` is the
+            buffer size. Also, this function can return an integer. It returns
+            -1 if failed to communicate with CPU1 or a positive integer if
+            the command failed.
 
         Raises
         ------
@@ -238,7 +362,7 @@ class Interface:
             
         """
         if type(adc) is not int:
-            raise TypeError('`adc` must of of int type')
+            raise TypeError('`adc` must of of int type.')
         
         # Flushes input, in case we had any previous communication error
         while self.ser.serial.in_waiting != 0:
@@ -249,15 +373,23 @@ class Interface:
         data = [adc & 0xFF]
 
         self.ser.send(cmd, data)
-        d = self.ser.read(cmd)
+        data = self.ser.read(cmd)
 
-        if d:
-            print('ADC read: data received')
-            n = int( len(d) / 2 )
-            d = [[d[2*i], d[2*i+1]] for i in range(n)]
-            d = serialp.conversions.u8_to_u16(d, msb=False)
+        if data == []:
+            print('{:}|\tADC {:}: failed to communicate with CPU1 or ADC buffer has been set to a size of 0.'.format(funcname, adc))
+            return -1
+
+        if len(data) == 1:
+            print('{:}|\tADC {:}: command failed. Error: {:}.'.format(funcname, adc, data[0]))
+            return data[0]            
+
+        n = int( len(data) / 2 )
+        print('{:}|\tADC {:}: data received. Samples: {:}'.format(funcname, adc, n))
+
+        if n == 0:
+            data = []
         else:
-            print('ADC read: failed')
-            d = []
+            data = [[data[2*i], data[2*i+1]] for i in range(n)]
+            data = serialp.conversions.u8_to_u16(data, msb=False)
         
-        return d
+        return data
