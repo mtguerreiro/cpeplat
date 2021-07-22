@@ -17,8 +17,8 @@ plat = cpe.interface.Interface(COM, baud, to)
 plat.ser.serial.set_buffer_size(65535)
 
 # Changes blinking rate for fun
-plat.cpu1_blink(250)
-plat.cpu2_blink(250)
+plat.cpu1_blink(2000)
+plat.cpu2_blink(2000)
 
 # Sets ADC buffers
 plat.cpu1_adc_buffer_set(0, 2000)
@@ -28,8 +28,54 @@ plat.cpu1_adc_buffer_set(3, 2000)
 plat.cpu1_adc_buffer_set(4, 2000)
 plat.cpu1_adc_buffer_set(5, 2000)
 
+plat.cpu2_buffer_set(0, 2000)
+plat.cpu2_buffer_set(1, 2000)
+
 # --- Experiment ---
-def experiment(dc):
+def experiment_ol(dc):
+    # Turns on the input relay, waits and then turns on the output
+    plat.cpu2_gpio(8, 1)
+    time.sleep(0.5)
+    plat.cpu2_gpio(9, 1)
+    time.sleep(0.5)
+
+    # Enables the PWM signal, waits a little bit, then disables it
+    plat.cpu2_pwm_enable(dc)
+    time.sleep(2)
+    plat.cpu2_pwm_disable()
+    time.sleep(0.5)
+
+    # Turns off the input and output relays
+    plat.cpu2_gpio(8, 0)
+    time.sleep(0.5)
+    plat.cpu2_gpio(9, 0)
+    time.sleep(0.5)
+
+    v_in = plat.cpu1_adc_buffer_read(0)
+    v_in = np.array(v_in)
+
+    v_in_buck = plat.cpu1_adc_buffer_read(1)
+    v_in_buck = np.array(v_in_buck)
+
+    v_out = plat.cpu1_adc_buffer_read(2)
+    v_out = np.array(v_out)
+
+    v_out_buck = plat.cpu1_adc_buffer_read(3)
+    v_out_buck = np.array(v_out_buck)
+    
+    il = plat.cpu1_adc_buffer_read(4)
+    il = np.array(il)
+
+    il_avg = plat.cpu1_adc_buffer_read(5)
+    il_avg = np.array(il_avg)
+
+    cpu2buffer = plat.cpu2_buffer_read()
+
+    data = [v_in, v_in_buck, v_out, v_out_buck, il, il_avg, cpu2buffer]
+
+    return data
+
+def experiment_pid():
     # Turns on the input relay, waits and then turns on the output
     plat.cpu2_gpio(8, 1)
     time.sleep(1)
