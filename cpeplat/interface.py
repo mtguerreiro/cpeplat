@@ -354,14 +354,6 @@ class Interface:
 
         print('{:}|\tControl mode set. Mode: {:}'.format(funcname, mode))
 
-##        if mode == 'ol':
-##            dc = (dc[0] << 8) | (dc[1])
-##            print('{:}|\tPWM set. Duty cycle: {:.4f}.'.format(funcname, dc/499))
-##
-##        if mode == 'pid':
-##            ref = (ref[0] << 8) | (ref[1])
-##            print('{:}|\tPWM set. Ref: {:}.'.format(funcname, ref))
-
         return 0
 
 
