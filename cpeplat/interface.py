@@ -20,6 +20,10 @@ class Commands:
         self.cpu1_adc_buffer_read = 0x09
         self.cpu2_buffer_set = 0x0A
         self.cpu2_buffer_read = 0x0B
+        self.cpu2_control_mode_set = 0x0C
+        self.cpu2_control_mode_read = 0x0D
+        self.cpu2_ref_set = 0x0E
+        self.cpu2_ref_read = 0x0F
         
 
 class Interface:
@@ -70,7 +74,7 @@ class Interface:
 
         Returns
         -------
-        int
+        status : int
             Status of CPU2, if received correctly. Otherwise, returns -1.
             
         """
@@ -99,7 +103,7 @@ class Interface:
 
         Returns
         -------
-        int
+        status : int
             Status of CPU2, which should be zero if the command worked.
             Returns -1 if failed to communicate with CPU1 or a positive
             integer if CPU1 returned an error.
@@ -170,7 +174,7 @@ class Interface:
 
         Returns
         -------
-        int
+        status : int
             Status of command. If command was executed successfully, returns 0.
             If there was an issue, will return -1 if failed to communicate with
             CPU1 and a positive integer if CPU1 returned an error.
@@ -207,37 +211,15 @@ class Interface:
     def cpu2_pwm_enable(self, mode, params):
         """Enables the PWM signal on CPU2, with the specified duty cycle.
 
-        Parameters
-        ----------
-        mode : str
-            Control mode.
-
-        data : dict
-            Additional data according to the control mode.
-
         Returns
         -------
-        int
+        status : int
             Status of command. If command was executed successfully, returns 0.
             If there was an issue, will return -1 if failed to communicate with
             CPU1 and a positive integer if CPU1 returned an error.
             
         Raises
         ------
-        TypeError
-            If `mode` is not of `str` type.
-
-        TypeError
-            If `params` is not of `dict` type.
-            
-        TypeError
-            If control mode is `ol`, raises TypeError if `u` is not of
-            `float` type.
-
-        ValueError
-            If control mode is `ol`, raises ValueError if `u` is not a
-            value between 0 and 1.
-
         TypeError
             If control mode is `ol`, raises TypeError if `ref` is not of
             `int` type.
@@ -246,95 +228,8 @@ class Interface:
             If control mode is `ol`, raises ValueError if `ref` is not a
             value between 0 and 4095.
             
-        TypeError
-            If control mode is `pid`, raises TypeError if `data` is not of
-            `int` type.
-
-        ValueError
-            If control mode is `ol`, raises ValueError if `data` is not a
-            value between 0 and 4095.
-            
         """
         funcname = Interface.cpu2_pwm_enable.__name__
-        if type(mode) is not str:
-            raise TypeError('`mode` must be of `str` type.')
-
-        if type(params) is not dict:
-            raise TypeError('`params` must be of `dict` type.')
-
-        if mode == 'ol':
-            u = params['u']
-            ref = params['ref']
-            
-            if type(u) is not float:
-                raise TypeError('In `ol` mode, `u` must be of float type.')
-
-            if u > 1 or u < 0:
-                raise ValueError('In `ol` mode, `u` must be between 0 and 1.')
-
-            if type(ref) is not int:
-                raise ValueError('In `ol` mode, `ref` must be of int type.')
-
-            if ref > 4095 or ref < 0:
-                raise ValueError('In `ol` mode, `ref` must be between 0 and 4095.')
-            
-            cmd = self.cmd.cpu2_pwm_enable
-
-            # Control mode
-            data = [0]
-
-            ref_hex = serialp.conversions.u32_to_u8(ref, msb=True)
-            data.extend(ref_hex)
-
-            u_hex = list(struct.pack('f', u))[::-1]
-            data.extend(u_hex)
-            
-            self.ser.send(cmd, data)
-
-
-        elif mode == 'pid':
-            ref = params['ref']
-            a1 = params['a1']
-            a2 = params['a2']
-            b0 = params['b0']
-            b1 = params['b1']
-            b2 = params['b2']
-
-            if type(ref) is not int:
-                raise ValueError('In `pid` mode, `ref` must be of int type.')
-
-            if ref > 4095 or ref < 0:
-                raise ValueError('In `pid` mode, `ref` must be between 0 and 4095.')
-
-            pid_gains = [a1, a2, b0, b1, b2]
-            for g in pid_gains:
-                if (type(g) is not float) and (type(g) is not int):
-                    raise TypeError('In `pid` mode, gains a1, a2, b0, b1 and b2 must be of float type.')
-            
-            cmd = self.cmd.cpu2_pwm_enable
-
-            # Control mode 
-            data = [1]
-
-            ref_hex = serialp.conversions.u32_to_u8(ref, msb=True)
-            data.extend(ref_hex)
-
-            g_hex = list(struct.pack('f', a1))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', a2))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', b0))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', b1))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', b2))[::-1]
-            data.extend(g_hex)
-            
-            self.ser.send(cmd, data)
-
-        else:
-            print('Mode not recognized')
-            return -1
             
         data = self.ser.read(cmd)
 
@@ -362,7 +257,7 @@ class Interface:
 
         Returns
         -------
-        int
+        status : int
             Status of command. If command was executed successfully, returns 0.
             If there was an issue, will return -1 if failed to communicate with
             CPU1 and a positive integer if CPU1 returned an error.
@@ -401,7 +296,7 @@ class Interface:
 
         Returns
         -------
-        int
+        status : int
             Returns 0 if the command was processed successfully. Returns -1 if
             could not communicate with CPU1 and returns a positive integer if
             there was any other error (ADC number or buffer size).
@@ -450,7 +345,7 @@ class Interface:
 
         Returns
         -------
-        list, int
+        data or status : list or int
             ADC samples, as a list. The size of the list depends on how many
             samples were recorded, but will be at most `N`, where `N` is the
             buffer size. Also, this function can return an integer. It returns
@@ -512,7 +407,7 @@ class Interface:
 
         Returns
         -------
-        int
+        status : int
             Returns 0 if the command was processed successfully. Returns -1 if
             could not communicate with CPU1 and returns a positive integer if
             there was any other error (buffer number or buffer size).
@@ -561,7 +456,7 @@ class Interface:
 
         Returns
         -------
-        list, int
+        data or status : list or int
             CPU2 buffer, as a list. The size of the list depends on how many
             samples were recorded, but will be at most `N`, where `N` is the
             buffer size. Also, this function can return an integer. It returns
@@ -598,3 +493,123 @@ class Interface:
             data = serialp.conversions.u8_to_u16(data, msb=False)
         
         return data
+
+
+    def cpu2_control_mode_set(self, mode, params):
+        """Sets the control mode.
+
+        Parameters
+        ----------
+        mode : str
+            Control mode.
+
+        data : dict
+            Additional data according to the control mode.
+
+        Returns
+        -------
+        status : int
+            Status of command. If command was executed successfully, returns 0.
+            If there was an issue, will return -1 if failed to communicate with
+            CPU1 and a positive integer if CPU1 returned an error.
+
+        Raises
+        ------
+        TypeError
+            If `mode` is not of `str` type.
+
+        TypeError
+            If `params` is not of `dict` type.
+            
+        TypeError
+            If control mode is `ol`, raises TypeError if `u` is not of
+            `float` type.
+
+        ValueError
+            If control mode is `ol`, raises ValueError if `u` is not a
+            value between 0 and 1.
+
+        TypeError
+            If control mode is `pid`, raises TypeError if any of the gains is
+            are not of `float` or `int` type.
+            
+        """
+        funcname = Interface.cpu2_control_mode_set.__name__
+        # Flushes input, in case we had any previous communication error
+        while self.ser.serial.in_waiting != 0:
+            self.ser.serial.flushInput()
+            time.sleep(0.1)
+
+        cmd = self.cmd.cpu2_control_mode_set
+
+        if type(mode) is not str:
+            raise TypeError('`mode` must be of `str` type.')
+
+        if type(params) is not dict:
+            raise TypeError('`params` must be of `dict` type.')
+
+        if mode == 'ol':
+            u = params['u']
+            
+            if type(u) is not float:
+                raise TypeError('In `ol` mode, `u` must be of float type.')
+
+            if u > 1 or u < 0:
+                raise ValueError('In `ol` mode, `u` must be between 0 and 1.')
+            
+            # Control mode
+            data = [0]
+
+            u_hex = list(struct.pack('f', u))[::-1]
+            data.extend(u_hex)
+            
+        elif mode == 'pid':
+            a1 = params['a1']
+            a2 = params['a2']
+            b0 = params['b0']
+            b1 = params['b1']
+            b2 = params['b2']
+
+            pid_gains = [a1, a2, b0, b1, b2]
+            for g in pid_gains:
+                if (type(g) is not float) and (type(g) is not int):
+                    raise TypeError('In `pid` mode, gains a1, a2, b0, b1 and b2 must be of float type.')
+            
+            # Control mode 
+            data = [1]
+
+            g_hex = list(struct.pack('f', a1))[::-1]
+            data.extend(g_hex)
+            g_hex = list(struct.pack('f', a2))[::-1]
+            data.extend(g_hex)
+            g_hex = list(struct.pack('f', b0))[::-1]
+            data.extend(g_hex)
+            g_hex = list(struct.pack('f', b1))[::-1]
+            data.extend(g_hex)
+            g_hex = list(struct.pack('f', b2))[::-1]
+            data.extend(g_hex)
+            
+        else:
+            print('Mode not recognized')
+            return -1
+
+        self.ser.send(cmd, data)
+        data = self.ser.read(cmd)
+        
+        if data == []:
+            print('{:}|\tControl mode {:}: failed to communicate with CPU1.'.format(funcname, mode))
+            return -1
+
+        if data[0] != 0:
+            print('{:}|\tControl mode {:}: command failed. Error: {:}.'.format(funcname, mode, data[0]))
+            return data[0]
+
+        status = serialp.conversions.u8_to_u16(data[1:], msb=True)   
+
+        if status != 0:
+            print('{:}|\tControl mode {:}: could not set mode. Status: {:}.'.format(funcname, mode, status))
+            return status
+        
+        print('{:}|\tControl mode {:}: mode set.'.format(funcname, mode))
+
+        return status
