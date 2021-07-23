@@ -208,8 +208,8 @@ class Interface:
         return 0
 
 
-    def cpu2_pwm_enable(self, mode, params):
-        """Enables the PWM signal on CPU2, with the specified duty cycle.
+    def cpu2_pwm_enable(self):
+        """Enables the PWM signal on CPU2.
 
         Returns
         -------
@@ -218,19 +218,12 @@ class Interface:
             If there was an issue, will return -1 if failed to communicate with
             CPU1 and a positive integer if CPU1 returned an error.
             
-        Raises
-        ------
-        TypeError
-            If control mode is `ol`, raises TypeError if `ref` is not of
-            `int` type.
-
-        ValueError
-            If control mode is `ol`, raises ValueError if `ref` is not a
-            value between 0 and 4095.
-            
         """
         funcname = Interface.cpu2_pwm_enable.__name__
-            
+
+        cmd = self.cmd.cpu2_pwm_enable
+        
+        self.ser.send(cmd)    
         data = self.ser.read(cmd)
 
         if data == []:
@@ -238,7 +231,7 @@ class Interface:
             return -1
 
         if data[0] == 1:
-            print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. PWM not set.'.format(funcname))
+            print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. PWM not enabled.'.format(funcname))
             return data[0]
 
         status = serialp.conversions.u8_to_u16(data[1:], msb=True)   
@@ -247,7 +240,7 @@ class Interface:
             print('{:}|\tCommand failed. Error: {:}.'.format(funcname, status))
             return status
 
-        print('{:}|\tControl mode set. Mode: {:}'.format(funcname, mode))
+        print('{:}|\tPWM enabled.'.format(funcname))
 
         return 0
 
@@ -613,3 +606,140 @@ class Interface:
         print('{:}|\tControl mode {:}: mode set.'.format(funcname, mode))
 
         return status
+
+
+    def cpu2_control_mode_read(self):
+        """Gets the control mode.
+
+        Parameters
+        ----------
+        mode : str
+            Control mode.
+
+        data : dict
+            Additional data according to the control mode.
+
+        Returns
+        -------
+        mode : int
+            Control mode, if received correctly. Otherwise, returns -1.
+            
+        """
+        funcname = Interface.cpu2_control_mode_read.__name__
+
+        cmd = self.cmd.cpu2_control_mode_read
+        self.ser.send(cmd)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tFailed to communicate with CPU1.'.format(funcname))
+            return -1
+        
+        if data[0] == 1:
+            print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. Control mode not read.'.format(funcname))
+            return -1
+
+        mode = serialp.conversions.u8_to_u16(data[1:], msb=True)
+        print('{:}|\tControl mode: {:}'.format(funcname, mode))
+
+        return mode
+        
+
+    def cpu2_ref_set(self, ref):
+        """Sets the reference.
+
+        Parameters
+        ----------
+        ref : int
+            Reference.
+
+        Returns
+        -------
+        status : int
+            Status of command. If command was executed successfully, returns 0.
+            If there was an issue, will return -1 if failed to communicate with
+            CPU1 and a positive integer if CPU1 returned an error.
+
+        Raises
+        ------
+        TypeError
+            If `ref` is not of `int` type.
+
+        ValueError
+            If `ref` is not a value between 0 and 4095.
+            
+        """
+        funcname = Interface.cpu2_ref_set.__name__
+        # Flushes input, in case we had any previous communication error
+        while self.ser.serial.in_waiting != 0:
+            self.ser.serial.flushInput()
+            time.sleep(0.1)
+
+        cmd = self.cmd.cpu2_ref_set
+
+        if type(ref) is not int:
+            raise TypeError('`ref` must be of `int` type.')
+
+        if ref > 4095 or ref < 0:
+            raise TypeError('`ref` must be a value between 0 and 4095.')
+
+        ref = serialp.conversions.u16_to_u8(ref, msb=True)
+
+        self.ser.send(cmd, ref)
+        data = self.ser.read(cmd)
+        
+        if data == []:
+            print('{:}|\tSet ref {:}: failed to communicate with CPU1.'.format(funcname, ref))
+            return -1
+
+        if data[0] != 0:
+            print('{:}|\tSet ref {:}: command failed. Error: {:}.'.format(funcname, ref, data[0]))
+            return data[0]
+
+        status = serialp.conversions.u8_to_u16(data[1:], msb=True)   
+
+        if status != 0:
+            print('{:}|\tSet ref {:}: could not set mode. Status: {:}.'.format(funcname, ref, status))
+            return status
+        
+        print('{:}|\tSet ref {:}: reference set.'.format(funcname, ref))
+
+        return status
+    
+
+    def cpu2_ref_read(self):
+        """Gets the control mode.
+
+        Parameters
+        ----------
+        mode : str
+            Control mode.
+
+        data : dict
+            Additional data according to the control mode.
+
+        Returns
+        -------
+        status : int
+            Reference, if received correctly. Otherwise, returns -1.
+            
+        """
+        funcname = Interface.cpu2_ref_read.__name__
+
+        cmd = self.cmd.cpu2_ref_read
+        self.ser.send(cmd)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tFailed to communicate with CPU1.'.format(funcname))
+            return -1
+        
+        if data[0] == 1:
+            print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. Control mode not read.'.format(funcname))
+            return -1
+
+        ref = serialp.conversions.u8_to_u16(data[1:], msb=True)
+        print('{:}|\tRef: {:}'.format(funcname, ref))
+
+        return ref
+    
