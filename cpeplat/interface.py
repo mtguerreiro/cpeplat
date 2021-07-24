@@ -75,7 +75,8 @@ class Interface:
         Returns
         -------
         status : int
-            Status of CPU2, if received correctly. Otherwise, returns -1.
+            If status of CPU2 was received correctly, returns the status as a
+            positive integer. Otherwise, returns a negative integer.
             
         """
         funcname = Interface.cpu2_status.__name__
@@ -90,7 +91,7 @@ class Interface:
         
         if data[0] == 1:
             print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. Status not read.'.format(funcname))
-            return -1
+            return -2
 
         status = serialp.conversions.u8_to_u16(data[1:], msb=True)
         print('{:}|\tCPU2 status: {:}'.format(funcname, status))
@@ -104,9 +105,8 @@ class Interface:
         Returns
         -------
         status : int
-            Status of CPU2, which should be zero if the command worked.
-            Returns -1 if failed to communicate with CPU1 or a positive
-            integer if CPU1 returned an error.
+            The status of CPU2, as a positive integer (should be zero if the
+            command worked). Otherwise, returns a negative integer.
         
         """
         funcname = Interface.cpu2_status_clear.__name__
@@ -121,13 +121,13 @@ class Interface:
 
         if data[0] == 1:
             print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. Status not cleared.'.format(funcname))
-            return 1
+            return -2
 
         status = serialp.conversions.u8_to_u16(data[1:], msb=True)        
 
         if status != 0:
             print('{:}|\tCommand failed. CPU2 status {:}.'.format(funcname, status))
-            return 1
+            return status
 
         print('{:}|\tCPU2 status cleared. Status {:}.'.format(funcname, status))
 
@@ -176,8 +176,7 @@ class Interface:
         -------
         status : int
             Status of command. If command was executed successfully, returns 0.
-            If there was an issue, will return -1 if failed to communicate with
-            CPU1 and a positive integer if CPU1 returned an error.
+            Otherwise, returns a negative integer.
         
         Raises
         ------
@@ -201,22 +200,32 @@ class Interface:
 
         if data[0] == 1:
             print('{:}|\tGPIO {:}: communicated with CPU1 but CPU2 is unresponsive. GPIO not set.'.format(funcname, gpio))
-            return data[0]
+            return -2
 
-        print('{:}|\tGPIO {:}: GPIO set. State: {:}.'.format(funcname, gpio, state))
+        state_rcvd = serialp.conversions.u8_to_u16(data[1:3], msb=True)
+        gpio_rcvd = serialp.conversions.u8_to_u16(data[3:], msb=True)
+
+        if gpio_rcvd != gpio:
+            print('{:}|\tGPIO {:}: GPIO error. GPIO sent: {:}. GPIO received: {:}.'.format(funcname, gpio, gpio, gpio_rcvd))
+            return -3
+
+        if state_rcvd != state:
+            print('{:}|\tGPIO {:}: Could no set state. State sent: {:}. State received: {:}.'.format(funcname, gpio, state, state_rcvd))
+            return -4
+        
+        print('{:}|\tGPIO {:}: GPIO set. State: {:}.'.format(funcname, gpio_rcvd, state_rcvd))
 
         return 0
 
 
     def cpu2_pwm_enable(self):
-        """Enables the PWM signal on CPU2.
+        """Enables the PWM signal/control mode on CPU2.
 
         Returns
         -------
         status : int
             Status of command. If command was executed successfully, returns 0.
-            If there was an issue, will return -1 if failed to communicate with
-            CPU1 and a positive integer if CPU1 returned an error.
+            Otherwise, returns a negative integer.
             
         """
         funcname = Interface.cpu2_pwm_enable.__name__
@@ -232,13 +241,13 @@ class Interface:
 
         if data[0] == 1:
             print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. PWM not enabled.'.format(funcname))
-            return data[0]
+            return -2
 
-        status = serialp.conversions.u8_to_u16(data[1:], msb=True)   
+        status = serialp.conversions.u8_to_u16(data[1:], msb=True)
 
         if status != 0:
             print('{:}|\tCommand failed. Error: {:}.'.format(funcname, status))
-            return status
+            return -3
 
         print('{:}|\tPWM enabled.'.format(funcname))
 
@@ -252,8 +261,7 @@ class Interface:
         -------
         status : int
             Status of command. If command was executed successfully, returns 0.
-            If there was an issue, will return -1 if failed to communicate with
-            CPU1 and a positive integer if CPU1 returned an error.
+            Otherwise, returns a negative integer.
         
         """
         funcname = Interface.cpu2_pwm_disable.__name__
@@ -268,8 +276,14 @@ class Interface:
 
         if data[0] == 1:
             print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. PWM not disabled.'.format(funcname))
-            return data[0]            
+            return -2
 
+        status = serialp.conversions.u8_to_u16(data[1:], msb=True)
+
+        if status != 0:
+            print('{:}|\tCommand failed. Error: {:}.'.format(funcname, status))
+            return -3
+        
         print('{:}|\tPWM disabled.'.format(funcname))
 
         return 0
@@ -281,18 +295,19 @@ class Interface:
         Parameters
         ----------
         adc : int
-            ADC buffer to set. It must be an integer between 0 and `N`, where
-            `N` is the maximum number of ADC buffers.
+            ADC buffer to set. It must be an integer between 0 and `N-1`, where
+            `N` is the maximum number of ADC buffers. The absolute maximum is
+            set to 255.
 
         size : int
-            Buffer size, in number of samples.
+            Buffer size, in number of samples. Absolute maximum is 65535, but
+            the available memory on the platform may be less.
 
         Returns
         -------
         status : int
-            Returns 0 if the command was processed successfully. Returns -1 if
-            could not communicate with CPU1 and returns a positive integer if
-            there was any other error (ADC number or buffer size).
+            Status of command. If command was executed successfully, returns 0.
+            Otherwise, returns a negative integer.
         
         Raises
         ------
@@ -307,7 +322,7 @@ class Interface:
         cmd = self.cmd.cpu1_adc_buffer_set
 
         adc = adc & 0xFF
-        size8 = serialp.conversions.u16_to_u8(size, msb=True)
+        size8 = serialp.conversions.u16_to_u8(size & 0xFFFF, msb=True)
 
         data = [adc, size8[0], size8[1]]
 
@@ -320,11 +335,22 @@ class Interface:
 
         if data[0] != 0:
             print('{:}|\tADC {:}: command failed. Error: {:}.'.format(funcname, adc, data[0]))
-            return data[0]
+            return -2
 
-        print('{:}|\tADC {:}: buffer set. Size: {:}'.format(funcname, adc, size))
+        adc_rcvd = serialp.conversions.u8_to_u16(data[1:3], msb=True)
+        size_rcvd = serialp.conversions.u8_to_u16(data[3:], msb=True)
 
-        return data[0]
+        if adc_rcvd != adc:
+            print('{:}|\tADC {:}: error setting ADC. ADC sent: {:}. ADC received: {:}.'.format(funcname, adc, adc, adc_rcvd))
+            return -3
+
+        if size_rcvd != size:
+            print('{:}|\tADC {:}: error setting size. Size sent: {:}. Size received: {:}.'.format(funcname, adc, size, size_rcvd))
+            return -4
+        
+        print('{:}|\tADC {:}: buffer set. Size: {:}'.format(funcname, adc_rcvd, size_rcvd))
+
+        return 0
 
 
     def cpu1_adc_buffer_read(self, adc):
@@ -333,7 +359,7 @@ class Interface:
         Parameters
         ----------
         adc : int
-            ADC buffer to set. It must be an integer between 0 and `N`, where
+            ADC buffer to set. It must be an integer between 0 and `N-1`, where
             `N` is the maximum number of ADC buffers.
 
         Returns
@@ -341,9 +367,8 @@ class Interface:
         data or status : list or int
             ADC samples, as a list. The size of the list depends on how many
             samples were recorded, but will be at most `N`, where `N` is the
-            buffer size. Also, this function can return an integer. It returns
-            -1 if failed to communicate with CPU1 or a positive integer if
-            the command failed.
+            buffer size. Also, this function can return a negative integer if
+            an error occurred.
 
         Raises
         ------
@@ -393,17 +418,18 @@ class Interface:
         ----------
         buffer : int
             Buffer to set. It must be an integer between 0 and `N`, where `N`
-            is the maximum number of CPU2 buffers.
+            is the maximum number of CPU2 buffers. The absolute maximum is
+            255, but it may be less on the platform.
 
         size : int
-            Buffer size, in number of samples.
+            Buffer size, in number of samples. Absolute maximum is 65535, but
+            the available memory on the platform may be less.
 
         Returns
         -------
         status : int
-            Returns 0 if the command was processed successfully. Returns -1 if
-            could not communicate with CPU1 and returns a positive integer if
-            there was any other error (buffer number or buffer size).
+            Status of command. If command was executed successfully, returns 0.
+            Otherwise, returns a negative integer.
         
         Raises
         ------
@@ -418,7 +444,7 @@ class Interface:
         cmd = self.cmd.cpu2_buffer_set
 
         buffer = buffer & 0xFF
-        size8 = serialp.conversions.u16_to_u8(size, msb=True)
+        size8 = serialp.conversions.u16_to_u8(size & 0xFFFF, msb=True)
 
         data = [buffer, size8[0], size8[1]]
 
@@ -431,30 +457,46 @@ class Interface:
 
         if data[0] != 0:
             print('{:}|\tBuffer {:}: command failed. Error: {:}.'.format(funcname, buffer, data[0]))
-            return data[0]
+            return -2
 
-        status = serialp.conversions.u8_to_u16(data[1:], msb=True)   
+        status = serialp.conversions.u8_to_u16(data[1:5], msb=True)
 
         if status != 0:
             print('{:}|\tBuffer {:}: could not set buffer. Status: {:}.'.format(funcname, buffer, status))
-            return status
-        
-        print('{:}|\tBuffer {:}: buffer set. Size: {:}'.format(funcname, buffer, size))
+            return -3
 
-        return data[0]
+        buffer_rcvd = serialp.conversions.u8_to_u16(data[5:7], msb=True)
+        size_rcvd = serialp.conversions.u8_to_u16(data[7:], msb=True)
+
+        if buffer_rcvd != buffer:
+            print('{:}|\tBuffer {:}: error setting buffer. Buffer sent: {:}. Buffer received: {:}.'.format(funcname, buffer, buffer, buffer_rcvd))
+            return -3
+
+        if size_rcvd != size:
+            print('{:}|\tBuffer {:}: error setting size. Size sent: {:}. Size received: {:}.'.format(funcname, adc, size, size_rcvd))
+            return -4
+        
+        print('{:}|\tBuffer {:}: buffer set. Size: {:}'.format(funcname, buffer_rcvd, size_rcvd))
+
+        return 0
 
     
-    def cpu2_buffer_read(self):
+    def cpu2_buffer_read(self, buffer):
         """Reads CPU2's buffer.
 
+        Parameters
+        ----------
+        buffer : int
+            Buffer to read. It must be an integer between 0 and `N-1`, where
+            `N` is the maximum number of buffers in CPU2.
+            
         Returns
         -------
         data or status : list or int
             CPU2 buffer, as a list. The size of the list depends on how many
             samples were recorded, but will be at most `N`, where `N` is the
-            buffer size. Also, this function can return an integer. It returns
-            -1 if failed to communicate with CPU1 or a positive integer if
-            the command failed.
+            buffer size. Also, this function can return a negative integer,
+            in case the command fails.
             
         """
         funcname = Interface.cpu2_buffer_read.__name__
@@ -465,7 +507,9 @@ class Interface:
 
         cmd = self.cmd.cpu2_buffer_read
 
-        self.ser.send(cmd)
+        data = [buffer & 0xFF]
+
+        self.ser.send(cmd, data)
         data = self.ser.read(cmd)
 
         if data == []:
@@ -474,7 +518,7 @@ class Interface:
 
         if len(data) == 1:
             print('{:}|\tCommand failed. Error: {:}.'.format(funcname, data[0]))
-            return data[0]
+            return -2
 
         n = int( len(data) / 2 )
         print('{:}|\tData received. Samples: {:}'.format(funcname, n))
@@ -503,8 +547,7 @@ class Interface:
         -------
         status : int
             Status of command. If command was executed successfully, returns 0.
-            If there was an issue, will return -1 if failed to communicate with
-            CPU1 and a positive integer if CPU1 returned an error.
+            Otherwise, returns a negative integer.
 
         Raises
         ------
@@ -542,6 +585,7 @@ class Interface:
             raise TypeError('`params` must be of `dict` type.')
 
         if mode == 'ol':
+            modei = 0
             u = params['u']
             
             if type(u) is not float:
@@ -557,6 +601,7 @@ class Interface:
             data.extend(u_hex)
             
         elif mode == 'pid':
+            modei = 1
             a1 = params['a1']
             a2 = params['a2']
             b0 = params['b0']
@@ -595,15 +640,21 @@ class Interface:
 
         if data[0] != 0:
             print('{:}|\tControl mode {:}: command failed. Error: {:}.'.format(funcname, mode, data[0]))
-            return data[0]
+            return -2
 
-        status = serialp.conversions.u8_to_u16(data[1:], msb=True)   
+        status = serialp.conversions.u8_to_u16(data[1:5], msb=True)   
 
         if status != 0:
             print('{:}|\tControl mode {:}: could not set mode. Status: {:}.'.format(funcname, mode, status))
-            return status
+            return -3
+
+        mode_rcvd = serialp.conversions.u8_to_u16(data[5:], msb=True)
+
+        if mode_rcvd != modei:
+            print('{:}|\tControl mode {:}: could not set mode. Mode sent: {:}. Mode received: {:}.'.format(funcname, modei, modei, mode_rcvd))
+            return -4
         
-        print('{:}|\tControl mode {:}: mode set.'.format(funcname, mode))
+        print('{:}|\tControl mode {:}: mode set.'.format(funcname, mode_rcvd))
 
         return status
 
@@ -622,7 +673,8 @@ class Interface:
         Returns
         -------
         mode : int
-            Control mode, if received correctly. Otherwise, returns -1.
+            Control mode, if received correctly. Otherwise, returns a
+            negative integer.
             
         """
         funcname = Interface.cpu2_control_mode_read.__name__
@@ -637,11 +689,17 @@ class Interface:
         
         if data[0] == 1:
             print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. Control mode not read.'.format(funcname))
-            return -1
+            return -2
 
-        mode = serialp.conversions.u8_to_u16(data[1:], msb=True)
-        print('{:}|\tControl mode: {:}'.format(funcname, mode))
+        status = serialp.conversions.u8_to_u16(data[1:5], msb=True)   
 
+        if status != 0:
+            print('{:}|\tCould not read control mode. Status: {:}.'.format(funcname, status))
+            return -3
+
+        mode = serialp.conversions.u8_to_u16(data[5:], msb=True)
+        print('{:}|\tCould mode: {:}.'.format(funcname, mode))
+        
         return mode
         
 
@@ -657,8 +715,7 @@ class Interface:
         -------
         status : int
             Status of command. If command was executed successfully, returns 0.
-            If there was an issue, will return -1 if failed to communicate with
-            CPU1 and a positive integer if CPU1 returned an error.
+            Otherwise, returns a negative integer.
 
         Raises
         ------
@@ -683,9 +740,9 @@ class Interface:
         if ref > 4095 or ref < 0:
             raise TypeError('`ref` must be a value between 0 and 4095.')
 
-        ref = serialp.conversions.u16_to_u8(ref, msb=True)
+        ref8 = serialp.conversions.u16_to_u8(ref, msb=True)
 
-        self.ser.send(cmd, ref)
+        self.ser.send(cmd, ref8)
         data = self.ser.read(cmd)
         
         if data == []:
@@ -694,34 +751,33 @@ class Interface:
 
         if data[0] != 0:
             print('{:}|\tSet ref {:}: command failed. Error: {:}.'.format(funcname, ref, data[0]))
-            return data[0]
+            return -2
 
-        status = serialp.conversions.u8_to_u16(data[1:], msb=True)   
+        status = serialp.conversions.u8_to_u16(data[1:5], msb=True)
 
         if status != 0:
-            print('{:}|\tSet ref {:}: could not set mode. Status: {:}.'.format(funcname, ref, status))
-            return status
-        
-        print('{:}|\tSet ref {:}: reference set.'.format(funcname, ref))
+            print('{:}|\tSet ref {:}: could not set reference. Status: {:}.'.format(funcname, ref, status))
+            return -3
+
+        ref_rcvd = serialp.conversions.u8_to_u16(data[5:], msb=True)
+
+        if ref_rcvd != ref:
+            print('{:}|\tSet ref {:}: could not set reference. Ref sent: {:}. Ref received: {:}.'.format(funcname, ref, ref, ref_rcvd))
+            return -4
+
+        print('{:}|\tSet ref {:}: reference set.'.format(funcname, ref_rcvd))
 
         return status
     
 
     def cpu2_ref_read(self):
-        """Gets the control mode.
-
-        Parameters
-        ----------
-        mode : str
-            Control mode.
-
-        data : dict
-            Additional data according to the control mode.
+        """Gets the reference.
 
         Returns
         -------
         status : int
-            Reference, if received correctly. Otherwise, returns -1.
+            Reference, if received correctly. Otherwise, returns a negative
+            integer.
             
         """
         funcname = Interface.cpu2_ref_read.__name__
@@ -735,11 +791,16 @@ class Interface:
             return -1
         
         if data[0] == 1:
-            print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. Control mode not read.'.format(funcname))
+            print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive.'.format(funcname))
             return -1
 
-        ref = serialp.conversions.u8_to_u16(data[1:], msb=True)
-        print('{:}|\tRef: {:}'.format(funcname, ref))
+        status = serialp.conversions.u8_to_u16(data[1:5], msb=True)
+
+        if status != 0:
+            print('{:}|\tError reading reference. Error: {:}.'.format(funcname, status))
+
+        ref = serialp.conversions.u8_to_u16(data[5:], msb=True)
+        print('{:}|\tReference: {:}'.format(funcname, ref))
 
         return ref
     
