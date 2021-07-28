@@ -885,4 +885,183 @@ class Interface:
         
         print('{:}|\tADC {:} set trip {:}: trip value set.'.format(funcname, adc_rcvd, trip_rcvd))
 
-        return status      
+        return status
+
+
+
+    def cpu2_trip_enable(self, adc):
+        """Enables tripping for an ADC.
+
+        Parameters
+        ----------
+        adc : int
+            ADC to set enable tripping. It must be an integer between 0 and
+            `N-1`, where `N` is the maximum number of ADCs.
+
+        Returns
+        -------
+        status : int
+            Status of command. If command was executed successfully, returns 0.
+            Otherwise, returns a negative integer.
+
+        Raises
+        ------
+        TypeError
+            If `adc` is not of `int` type.
+
+        """
+        funcname = Interface.cpu2_trip_enable.__name__
+
+        if type(adc) is not int:
+            raise TypeError('`adc` must be of `int` type.')
+
+        adc = adc & 0xFF
+
+        data = [adc]
+        
+        cmd = self.cmd.cpu2_trip_enable
+        self.ser.send(cmd, data)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tADC {:} trip enable: failed to communicate with CPU1.'.format(funcname, adc))
+            return -1
+
+        if data[0] != 0:
+            print('{:}|\tADC {:} trip enable: command failed. Error: {:}.'.format(funcname, adc, data[0]))
+            return -2
+
+        status = serialp.conversions.u8_to_u16(data[1:5], msb=True)
+
+        if status != 0:
+            print('{:}|\tADC {:} trip enable: could not enable trip. Status: {:}.'.format(funcname, adc, status))
+            return -3
+
+        adc_rcvd = serialp.conversions.u8_to_u16(data[5:8], msb=True)
+
+        if adc_rcvd != adc:
+            print('{:}|\tADC {:} trip enable: could not enable trip. ADC sent: {:}. ADC received: {:}.'.format(funcname, adc, adc, adc_rcvd))
+            return -4
+        
+        print('{:}|\tADC {:} trip enable: trip enabled.'.format(funcname, adc_rcvd))
+
+        return status
+
+
+    def cpu2_trip_disable(self, adc):
+        """Disables tripping for an ADC.
+
+        Parameters
+        ----------
+        adc : int
+            ADC to disable tripping. It must be an integer between 0 and
+            `N-1`, where `N` is the maximum number of ADCs.
+
+        Returns
+        -------
+        status : int
+            Status of command. If command was executed successfully, returns 0.
+            Otherwise, returns a negative integer.
+
+        Raises
+        ------
+        TypeError
+            If `adc` is not of `int` type.
+
+        """
+        funcname = Interface.cpu2_trip_disable.__name__
+
+        if type(adc) is not int:
+            raise TypeError('`adc` must be of `int` type.')
+
+        adc = adc & 0xFF
+
+        data = [adc]
+        
+        cmd = self.cmd.cpu2_trip_disable
+        self.ser.send(cmd, data)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tADC {:} trip disable: failed to communicate with CPU1.'.format(funcname, adc))
+            return -1
+
+        if data[0] != 0:
+            print('{:}|\tADC {:} trip disable: command failed. Error: {:}.'.format(funcname, adc, data[0]))
+            return -2
+
+        status = serialp.conversions.u8_to_u16(data[1:5], msb=True)
+
+        if status != 0:
+            print('{:}|\tADC {:} trip disable: could not disable trip. Status: {:}.'.format(funcname, adc, status))
+            return -3
+
+        adc_rcvd = serialp.conversions.u8_to_u16(data[5:8], msb=True)
+
+        if adc_rcvd != adc:
+            print('{:}|\tADC {:} trip disable: could not disable trip. ADC sent: {:}. ADC received: {:}.'.format(funcname, adc, adc, adc_rcvd))
+            return -4
+        
+        print('{:}|\tADC {:} trip disable: trip disabled.'.format(funcname, adc_rcvd))
+
+        return status
+
+
+    def cpu2_trip_read(self, adc):
+        """Reads the tripping value for an ADC.
+
+        Parameters
+        ----------
+        adc : int
+            ADC to read tripping value. It must be an integer between 0 and
+            `N-1`, where `N` is the maximum number of ADCs.
+
+        Returns
+        -------
+        value, status : int
+            Tripping value, as a positive integer. A negative integer is
+            returned if an error occurred.
+
+        Raises
+        ------
+        TypeError
+            If `adc` is not of `int` type.
+
+        """
+        funcname = Interface.cpu2_trip_disable.__name__
+
+        if type(adc) is not int:
+            raise TypeError('`adc` must be of `int` type.')
+
+        adc = adc & 0xFF
+
+        data = [adc]
+        
+        cmd = self.cmd.cpu2_trip_read
+        self.ser.send(cmd, data)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tADC {:} trip read: failed to communicate with CPU1.'.format(funcname, adc))
+            return -1
+
+        if data[0] != 0:
+            print('{:}|\tADC {:} trip read: command failed. Error: {:}.'.format(funcname, adc, data[0]))
+            return -2
+
+        status = serialp.conversions.u8_to_u16(data[1:5], msb=True)
+
+        if status != 0:
+            print('{:}|\tADC {:} trip read: could not read trip. Status: {:}.'.format(funcname, adc, status))
+            return -3
+
+        adc_rcvd = serialp.conversions.u8_to_u16(data[5:7], msb=True)
+        ref_rcvd = serialp.conversions.u8_to_u16(data[7:], msb=True)
+
+        if adc_rcvd != adc:
+            print('{:}|\tADC {:} trip read: could not read trip. ADC sent: {:}. ADC received: {:}.'.format(funcname, adc, adc, adc_rcvd))
+            return -4
+        
+        print('{:}|\tADC {:} trip read: trip read. Value: {:}'.format(funcname, adc_rcvd, ref_rcvd))
+
+        return ref_rcvd
