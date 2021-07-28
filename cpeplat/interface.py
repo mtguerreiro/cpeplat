@@ -24,7 +24,10 @@ class Commands:
         self.cpu2_control_mode_read = 0x0D
         self.cpu2_ref_set = 0x0E
         self.cpu2_ref_read = 0x0F
-        
+        self.cpu2_trip_set = 0x10
+        self.cpu2_trip_enable = 0x11
+        self.cpu2_trip_disable = 0x12
+        self.cpu2_trip_read = 0x13
 
 class Interface:
     """A class to provide an interface to the C2000-based platform.
@@ -803,4 +806,83 @@ class Interface:
         print('{:}|\tReference: {:}'.format(funcname, ref))
 
         return ref
-    
+
+
+    def cpu2_trip_set(self, adc, trip):
+        """Sets the higher trip value for an ADC.
+
+        Parameters
+        ----------
+        adc : int
+            ADC to set tripping value. It must be an integer between 0 and
+            `N-1`, where `N` is the maximum number of ADCs.
+
+        trip : int
+            Tripping value.
+
+        Returns
+        -------
+        status : int
+            Status of command. If command was executed successfully, returns 0.
+            Otherwise, returns a negative integer.
+
+        Raises
+        ------
+        TypeError
+            If `adc` is not of `int` type.
+
+        TypeError
+            If `trip` is not of `int` type.
+
+        ValueError
+            If `trip` is not a value between 0 and 4095.
+        """
+        funcname = Interface.cpu2_trip_set.__name__
+
+        if type(adc) is not int:
+            raise TypeError('`adc` must be of `int` type.')
+
+        if type(trip) is not int:
+            raise TypeError('`trip` must be of `int` type.')
+
+        if trip > 4095 or trip < 0:
+            raise ValueError('`trip` must be a value between 0 and 4095.')
+
+
+        adc = adc & 0xFF
+        trip8 = serialp.conversions.u16_to_u8(trip & 0xFFFF, msb=True)
+
+        data = [adc, trip8[0], trip8[1]]
+        
+        cmd = self.cmd.cpu2_trip_set
+        self.ser.send(cmd, data)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tADC {:} set trip {:}: failed to communicate with CPU1.'.format(funcname, adc, trip))
+            return -1
+
+        if data[0] != 0:
+            print('{:}|\tADC {:} set trip {:}: command failed. Error: {:}.'.format(funcname, adc, trip, ref, data[0]))
+            return -2
+
+        status = serialp.conversions.u8_to_u16(data[1:5], msb=True)
+
+        if status != 0:
+            print('{:}|\tADC {:} set trip {:}: could not set trip. Status: {:}.'.format(funcname, adc, trip,  status))
+            return -3
+
+        adc_rcvd = serialp.conversions.u8_to_u16(data[5:7], msb=True)
+        trip_rcvd = serialp.conversions.u8_to_u16(data[7:], msb=True)
+
+        if adc_rcvd != adc:
+            print('{:}|\tADC {:} set trip {:}: could not set trip. ADC sent: {:}. ADC received: {:}.'.format(funcname, adc, trip, adc, adc_rcvd))
+            return -4
+
+        if trip_rcvd != trip:
+            print('{:}|\tADC {:} set trip {:}: could not set trip. Trip sent: {:}. Trip received: {:}.'.format(funcname, adc, trip, trip, trip_rcvd))
+            return -5
+        
+        print('{:}|\tADC {:} set trip {:}: trip value set.'.format(funcname, adc_rcvd, trip_rcvd))
+
+        return status      
