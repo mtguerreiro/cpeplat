@@ -1,5 +1,6 @@
 import cpeplat as cpe
 import numpy as np
+import time
 
 class BuckHWM:
     """A class to hold hardware mapping data for the buck platform.
@@ -907,4 +908,116 @@ class Buck:
             return -1
 
         return trip
-    
+
+
+    def experiment(self, ref, control, params):
+        """Runs an experiment.
+
+        The experiment consists of setting control mode, closing the
+        input/output relays, enabling the PWM for a certain amount of time,
+        disabling the PWM and opening the input/output relays.
+
+        Data from the experiment is then returned.
+
+        Returns
+        -------
+        data or status : list or int
+            If no errors occurred during the experiment, data from the ADCs
+            is returned. Otherwise, returns -1.
+            
+        """
+        status = self.set_reference(ref)
+        
+        status = self.control_mode(control, params)
+        if status != 0:
+            print('Could not set control mode. Aborting experiment.')
+            return -1
+
+        status = self.close_input_relay()
+        if status != 0:
+            print('Could not close input relay. Aborting experiment.')
+            return -1
+
+        status = self.close_output_relay()
+        if status != 0:
+            print('Could not close input relay. Aborting experiment.')
+            while 1:
+                status = self.open_input_relay()
+                if status == 0: break
+            while 1:
+                status = self.open_output_relay()
+                if status == 0: break
+            return -1
+
+        time.sleep(2)
+
+        status = self.enable_pwm()
+        if status != 0:
+            print('Could not enable PWM. Aborting experiment.')
+            while 1:
+                status = self.open_input_relay()
+                if status == 0: break
+            while 1:
+                status = self.open_output_relay()
+                if status == 0: break
+            return -1
+
+        time.sleep(3)
+
+        while 1:
+            status = self.disable_pwm()
+            status = self.disable_pwm()
+            if status == 0: break
+            print('Could not disable PWM signal... trying again.')
+
+        time.sleep(2)
+        
+        while 1:
+            status = self.open_input_relay()
+            if status == 0: break
+            print('Could not open input relay... trying again.')
+
+        while 1:
+            status = self.open_output_relay()
+            if status == 0: break
+            print('Could not open output relay... trying again.')
+
+        while 1:
+            vin = self.read_vin_buffer()
+            if type(vin) is not int: break
+            print('Could not read Vin buffer... trying again.') 
+
+        while 1:
+            vin_buck = self.read_vin_buck_buffer()
+            if type(vin_buck) is not int: break
+            print('Could not read Vin_buck buffer... trying again.')
+
+        while 1:
+            vout = self.read_vout_buffer()
+            if type(vout) is not int: break
+            print('Could not read Vout buffer... trying again.')
+
+        while 1:
+            vout_buck = self.read_vout_buck_buffer()
+            if type(vout_buck) is not int: break
+            print('Could not read Vout_buck buffer... trying again.')
+            
+        while 1:
+            il = self.read_il_buffer()
+            if type(il) is not int: break
+            print('Could not read IL buffer... trying again.')
+
+        while 1:
+            il_avg = self.read_il_avg_buffer()
+            if type(il_avg) is not int: break
+            print('Could not read IL_avg buffer... trying again.')            
+
+        while 1:
+            u = self.read_u_buffer()
+            if type(u) is not int: break
+            print('Could not read u buffer... trying again.')
+
+        data = [vin, vin_buck, vout, vout_buck, il, il_avg, u]
+
+        return data
+            
