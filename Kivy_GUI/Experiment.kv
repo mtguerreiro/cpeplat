@@ -2,58 +2,147 @@
 <Tabs>:
     size_hint: 1, 1
     do_default_tab: False
-  
-    TabbedPanelItem:
-        text: 'Analysis'
-        FloatLayout:
-            size_hint:(1,1)
-            id:form_layout
-            b_sy: 0.05
-            b_sx: 0.08
-            b_px_off:0.0
-            b_py_off:0.95
-            Button:
-                id: exp_btn
-                text: 'Export'
-                size_hint: self.parent.b_sx, self.parent.b_sy
-                pos_hint: {'x':self.parent.b_px_off, 'y': self.parent.b_py_off}
-            Button:
-                id: save_btn
-                text: 'Save'
-                size_hint: self.parent.b_sx, self.parent.b_sy
-                pos_hint: {'x':self.parent.b_px_off+self.parent.b_sx, 'y': self.parent.b_py_off}
-            Button:
-                id: upd_btn
-                text: 'Update'
-                size_hint: self.parent.b_sx, self.parent.b_sy
-                pos_hint: {'x':self.parent.b_px_off+2*self.parent.b_sx, 'y':self.parent.b_py_off}    
-                on_press: root.update_graphs()
-            Button:
-                id: add_btn
-                text: 'Add Src'
-                size_hint: self.parent.b_sx, self.parent.b_sy
-                pos_hint: {'x':self.parent.b_px_off+3*self.parent.b_sx, 'y':self.parent.b_py_off} 
-                on_press: root.add_source()
-            Button:
-                id: rem_btn
-                text: 'Rem Src'
-                size_hint: self.parent.b_sx, self.parent.b_sy
-                pos_hint: {'x':self.parent.b_px_off+4*self.parent.b_sx, 'y':self.parent.b_py_off} 
-                on_press: root.remove_source()
-            Button:
-                id: save_cfg
-                text: 'Save Cfg'
-                size_hint: self.parent.b_sx, self.parent.b_sy
-                pos_hint: {'x':self.parent.b_px_off+5*self.parent.b_sx, 'y':self.parent.b_py_off}    
-            Button:
-                id: import_cfg
-                text: 'Import Cfg'
-                size_hint: self.parent.b_sx, self.parent.b_sy
-                pos_hint: {'x':self.parent.b_px_off+6*self.parent.b_sx, 'y':self.parent.b_py_off}    
+    Buck:
+        id:buck_tab
+    Analysis:    
+        id:al_tab
+        
+<DrawPlot@BoxLayout>    
+    orientation: 'vertical'
+    size_hint:(0.46,0.8)
+    pos_hint: {'x':0.54,'y':0.1}
+        
+    
+<Analysis@TabbedPanelItem> 
+    text: 'Analysis'
+    FloatLayout:
+        size_hint:(1,1)
+        id:form_layout
+        b_sy: 0.05
+        b_sx: 0.08
+        b_px_off:0.0
+        b_py_off:0.95
+        Button:
+            id: exp_btn
+            text: 'Export'
+            size_hint: self.parent.b_sx, self.parent.b_sy
+            pos_hint: {'x':self.parent.b_px_off, 'y': self.parent.b_py_off}
+            on_press: self.ids.graph._print_image()
+        Button:
+            id: save_btn
+            text: 'Save'
+            size_hint: self.parent.b_sx, self.parent.b_sy
+            pos_hint: {'x':self.parent.b_px_off+self.parent.b_sx, 'y': self.parent.b_py_off}
+        Button:
+            id: upd_btn
+            text: 'Update'
+            size_hint: self.parent.b_sx, self.parent.b_sy
+            pos_hint: {'x':self.parent.b_px_off+2*self.parent.b_sx, 'y':self.parent.b_py_off}    
+            on_press: root.update_graphs()
+        Button:
+            id: add_btn
+            text: 'Add Src'
+            size_hint: self.parent.b_sx, self.parent.b_sy
+            pos_hint: {'x':self.parent.b_px_off+3*self.parent.b_sx, 'y':self.parent.b_py_off} 
+            on_press: root.add_source()
+        Button:
+            id: rem_btn
+            text: 'Rem Src'
+            size_hint: self.parent.b_sx, self.parent.b_sy
+            pos_hint: {'x':self.parent.b_px_off+4*self.parent.b_sx, 'y':self.parent.b_py_off} 
+            on_press: root.remove_source()
+        Button:
+            id: save_cfg
+            text: 'Save Cfg'
+            size_hint: self.parent.b_sx, self.parent.b_sy
+            pos_hint: {'x':self.parent.b_px_off+5*self.parent.b_sx, 'y':self.parent.b_py_off}    
+        Button:
+            id: import_cfg
+            text: 'Import Cfg'
+            size_hint: self.parent.b_sx, self.parent.b_sy
+            pos_hint: {'x':self.parent.b_px_off+6*self.parent.b_sx, 'y':self.parent.b_py_off}  
+        DrawPlot:
+            id:plot_al
+            size_hint:(0.5, 0.65)
+            pos_hint:{'y': 0.15, 'right':1}
+            
+<Buck@TabbedPanelItem>  
+    text: 'Buck-Converter'  
+    FloatLayout:
+        size_hint:(1,1)
+        pos_hint: {'x':0,'y':0}
+        id: 'buck_lay'
+        b_sy: 0.05
+        b_sx: 0.08
+        b_px_off:0.0
+        b_py_off:0.95
+        Button:
+            id: upl_btn
+            text: 'Upload'
+            size_hint: self.parent.b_sx, self.parent.b_sy
+            pos_hint: {'x':self.parent.b_px_off, 'y': self.parent.b_py_off}
+            on_press: root.upload()
+        Label:
+            text: 'Limits'
+            pos_hint:{'x':0.01,'y':0.82}
+            size_hint_y: 0.15
+            size_hint_x: 0.2
+        Limits:             
+            font_size:18
+            pos_hint:{'x':0.03,'y':0.7}
+            size_hint_y: 0.15
+            size_hint_x: 0.5
+            canvas:
+                Color:
+                    rgba: 0.7,0.7,0.7,0.5
+                Line:                
+                    width:3
+                    points: self.x,self.top+15,self.right,self.top+15
+                Line:
+                    width:3
+                    points: self.x,self.y-15,self.right,self.y-15
+        Label:
+            text:'Actual Values' 
+            pos_hint:{'x':0.01,'y':0.52} 
+            size_hint_y: 0.15
+            size_hint_x: 0.2
+        ActualValues:
+            font_size:18
+            pos_hint:{'x':0.03,'y':0.4}
+            size_hint_y: 0.15
+            size_hint_x: 0.5
+            canvas:
+                Color:
+                    rgba: 0.7,0.7,0.7,0.5
+                Line:                
+                    width:3
+                    points: self.x,self.top+15,self.right,self.top+15
+                Line:
+                    width:3
+                    points: self.x,self.y-15,self.right,self.y-15
+        Label:
+            text: 'Experiment'
+            pos_hint:{'x':0.01,'y':0.19}
+            size_hint_y: 0.15
+            size_hint_x: 0.2
+        Experiment:
+            font_size:18
+            pos_hint:{'x':0.03,'y':0.07}
+            size_hint_y: 0.15
+            size_hint_x: 0.5
+            canvas:
+                Color:
+                    rgba: 0.7,0.7,0.7,0.5
+                Line:                
+                    width:3
+                    points: self.x,self.top+15,self.right,self.top+15
+                Line:
+                    width:3
+                    points: self.x,self.y-15,self.right,self.y-15
+        DrawPlot:
+            id: plot_exp
 
-  
-  
-          
+            
 <FileHeader@BoxLayout>
     id: FileHeader
     size_hint_y:0.03
@@ -141,6 +230,7 @@
         width: 150
     TextInput:
         id:label_input
+        multiline: False
         text:'' 
         padding: [0, (self.height-self.line_height)/2]
         font_size:22
@@ -149,6 +239,7 @@
         width: 150
     TextInput:
         id:scale_input
+        multiline: False
         text:'1' 
         padding: [0,(self.height-self.line_height)/2]
         font_size:22
@@ -166,13 +257,190 @@
                 pos:self.center_x-9, self.center_y-13
                 size:24,24
 
+<Limits@BoxLayout>
+    orientation: 'vertical'
+    GridLayout:
+        rows: 2
+        cols: 8
+        spacing: 60
+        Label:
+            text:'V_in'
+            size_hint_x: None  
+            width: 50
+        TextInput:
+            multiline: False
+            text:''
+            size_hint_x: None  
+            width: 80
+        Label: 
+            text:'I_l'
+            multiline: False
+            size_hint_x: None 
+            width: 50 
+        TextInput:
+            text:''
+            multiline: False
+            size_hint_x: None  
+            width: 80
+        Label: 
+            text:''
+            multiline: False
+            size_hint_x: None 
+            width: 50 
+        Label:
+            text:''
+            size_hint_x: None  
+            width: 80
+        Label: 
+            text:''
+            size_hint_x: None 
+            width: 50 
+        Label:
+            text:''
+            size_hint_x: None  
+            width: 80
+        Label: 
+            text:'V_out'
+            size_hint_x: None 
+            width: 50 
+        TextInput:
+            text:''
+            multiline: False
+            size_hint_x: None  
+            width: 80
+        Label: 
+            text:''
+            size_hint_x: None 
+            width: 50 
+        Label:
+            text:''
+            size_hint_x: None  
+            width: 80
+        Label: 
+            text:''
+            size_hint_x: None 
+            width: 50 
+        Label:
+            text:''
+            size_hint_x: None  
+            width: 80
+
+
+<Experiment@BoxLayout>
+    orientation: 'vertical'
+    GridLayout:
+        rows: 3
+        cols: 4
+        spacing_vertical:50
+        spacing_horizontal:100
+        Label:
+            text:'Input'
+        Label:
+            text:'Output'
+        Label:
+            text:''
+        Label:
+            text:''
+        ToggleButton:
+            text:'ON'
+         #   background_down:
+          #  background_normal:
+        ToggleButton:
+            text:'ON'
+         #   background_down:
+          #  background_normal:
+        Label:
+            text:''
+        Label:
+            text:''
+        Button:
+            text: 'Start'
+        Button:
+            text: 'Stop'
+        Button:
+            text: 'Export'
+        Button:
+            text: 'Save Data'
+            
+            
+
+
+<ActualValues@BoxLayout>
+    orientation: 'vertical'
+    GridLayout:
+        rows: 2
+        cols: 8
+        spacing: 60
+        Label:
+            text:'V_in'
+            size_hint_x: None  
+            width: 50
+        TextInput:
+            text:''
+            multiline: False
+            size_hint_x: None  
+            width: 80
+        Label: 
+            text:'Vout'
+            size_hint_x: None 
+            width: 50 
+        TextInput:
+            text:''
+            size_hint_x: None  
+            width: 80
+        Label: 
+            text:'I_l'
+            size_hint_x: None 
+            width: 50 
+        TextInput:
+            text:''
+            multiline: False
+            size_hint_x: None  
+            width: 80
+        Label: 
+            text:'PWM'
+            size_hint_x: None 
+            width: 50 
+        TextInput:
+            text:''
+            multiline: False
+            size_hint_x: None  
+            width: 80
+        Label: 
+            text:'V_in_buck'
+            size_hint_x: None 
+            width: 50 
+        TextInput:
+            text:''
+            multiline: False
+            size_hint_x: None  
+            width: 80
+        Label: 
+            text:'V_out_buck'
+            size_hint_x: None 
+            width: 50 
+        TextInput:
+            text:''
+            multiline: False
+            size_hint_x: None  
+            width: 80
+        Label: 
+            text:'I_l_AVG'
+            size_hint_x: None 
+            width: 50 
+        TextInput:
+            text:''
+            multiline: False
+            size_hint_x: None  
+            width: 80
+            
+<MyFigure@BoxLayout>
+
+
 <FileChoose@BoxLayout>
     orientation:'vertical'
-    
-
-        
-
-            
+               
+               
             
 <FileChoosePopup>:
     title: "Choose a .CSV File"
