@@ -300,7 +300,8 @@ class Interface:
         adc : int
             ADC buffer to set. It must be an integer between 0 and `N-1`, where
             `N` is the maximum number of ADC buffers. The absolute maximum is
-            set to 255.
+            set to 255, but the actual value which is limited by the hardware
+            may be lower.
 
         size : int
             Buffer size, in number of samples. Absolute maximum is 65535, but
@@ -316,11 +317,17 @@ class Interface:
         ------
         TypeError
             If either `adc` or `size` is not of `int` type.
+
+        ValueError
+            If `adc` is not a value between 0 and 255.
         
         """
         funcname = Interface.cpu1_adc_buffer_set.__name__
         if type(adc) is not int or type(size) is not int:
             raise TypeError('`adc` and `size` must be of int type.')
+
+        if adc > 255 or adc < 0:
+            raise ValueError('`adc` must be a value between 0 and 255.')
         
         cmd = self.cmd.cpu1_adc_buffer_set
 
@@ -363,7 +370,9 @@ class Interface:
         ----------
         adc : int
             ADC buffer to set. It must be an integer between 0 and `N-1`, where
-            `N` is the maximum number of ADC buffers.
+            `N` is the maximum number of ADC buffers. The absolute maximum is
+            set to 255, but the actual value which is limited by the hardware
+            may be lower.
 
         Returns
         -------
@@ -377,11 +386,17 @@ class Interface:
         ------
         TypeError
             If `adc` is not of `int` type.
+
+        ValueError
+            If `adc` is not a value between 0 and 255.
             
         """
         funcname = Interface.cpu1_adc_buffer_read.__name__
         if type(adc) is not int:
             raise TypeError('`adc` must of of int type.')
+
+        if adc > 255 or adc < 0:
+            raise ValueError('`adc` must be a value between 0 and 255.')
         
         # Flushes input, in case we had any previous communication error
         while self.ser.serial.in_waiting != 0:
@@ -422,7 +437,8 @@ class Interface:
         buffer : int
             Buffer to set. It must be an integer between 0 and `N`, where `N`
             is the maximum number of CPU2 buffers. The absolute maximum is
-            255, but it may be less on the platform.
+            set to 255, but the actual value which is limited by the hardware
+            may be lower.
 
         size : int
             Buffer size, in number of samples. Absolute maximum is 65535, but
@@ -438,11 +454,23 @@ class Interface:
         ------
         TypeError
             If either `buffer` or `size` is not of `int` type.
+
+        ValueError
+            If `buffer` is not a value between 0 and 255.
+
+        ValueError
+            If `size` is not a value between 0 and 65535.
         
         """
         funcname = Interface.cpu2_buffer_set.__name__
         if type(buffer) is not int or type(size) is not int:
             raise TypeError('`buffer` and `size` must be of int type.')
+
+        if buffer > 255 or buffer < 0:
+            raise ValueError('`buffer` must be a value between 0 and 255.')
+
+        if size > 65535 or size < 0:
+            raise ValueError('`size` must be a value between 0 and 65535.')
         
         cmd = self.cmd.cpu2_buffer_set
 
@@ -491,7 +519,9 @@ class Interface:
         ----------
         buffer : int
             Buffer to read. It must be an integer between 0 and `N-1`, where
-            `N` is the maximum number of buffers in CPU2.
+            `N` is the maximum number of buffers in CPU2. The absolute maximum is
+            set to 255, but the actual value which is limited by the hardware
+            may be lower.
             
         Returns
         -------
@@ -500,9 +530,24 @@ class Interface:
             samples were recorded, but will be at most `N`, where `N` is the
             buffer size. Also, this function can return a negative integer,
             in case the command fails.
+
+        Raises
+        ------
+        TypeError
+            If `buffer` is not of `int` type.
+
+        ValueError
+            If `buffer` is not a value between 0 and 255.
             
         """
         funcname = Interface.cpu2_buffer_read.__name__
+
+        if type(buffer) is not int:
+            raise TypeError('`buffer` must be of int type.')
+
+        if buffer > 255 or buffer < 0:
+            raise ValueError('`buffer` must be a value between 0 and 255.')
+        
         # Flushes input, in case we had any previous communication error
         while self.ser.serial.in_waiting != 0:
             self.ser.serial.flushInput()
@@ -872,8 +917,8 @@ class Interface:
             print('{:}|\tADC {:} set trip {:}: could not set trip. Status: {:}.'.format(funcname, adc, trip,  status))
             return -3
 
-        adc_rcvd = serialp.conversions.u8_to_u16(data[5:7], msb=True)
-        trip_rcvd = serialp.conversions.u8_to_u16(data[7:], msb=True)
+        trip_rcvd = serialp.conversions.u8_to_u16(data[5:7], msb=True)
+        adc_rcvd = serialp.conversions.u8_to_u16(data[7:], msb=True)
 
         if adc_rcvd != adc:
             print('{:}|\tADC {:} set trip {:}: could not set trip. ADC sent: {:}. ADC received: {:}.'.format(funcname, adc, trip, adc, adc_rcvd))
@@ -937,7 +982,7 @@ class Interface:
             print('{:}|\tADC {:} trip enable: could not enable trip. Status: {:}.'.format(funcname, adc, status))
             return -3
 
-        adc_rcvd = serialp.conversions.u8_to_u16(data[5:8], msb=True)
+        adc_rcvd = serialp.conversions.u8_to_u16(data[5:], msb=True)
 
         if adc_rcvd != adc:
             print('{:}|\tADC {:} trip enable: could not enable trip. ADC sent: {:}. ADC received: {:}.'.format(funcname, adc, adc, adc_rcvd))
@@ -996,7 +1041,7 @@ class Interface:
             print('{:}|\tADC {:} trip disable: could not disable trip. Status: {:}.'.format(funcname, adc, status))
             return -3
 
-        adc_rcvd = serialp.conversions.u8_to_u16(data[5:8], msb=True)
+        adc_rcvd = serialp.conversions.u8_to_u16(data[5:], msb=True)
 
         if adc_rcvd != adc:
             print('{:}|\tADC {:} trip disable: could not disable trip. ADC sent: {:}. ADC received: {:}.'.format(funcname, adc, adc, adc_rcvd))
@@ -1055,8 +1100,8 @@ class Interface:
             print('{:}|\tADC {:} trip read: could not read trip. Status: {:}.'.format(funcname, adc, status))
             return -3
 
-        adc_rcvd = serialp.conversions.u8_to_u16(data[5:7], msb=True)
-        ref_rcvd = serialp.conversions.u8_to_u16(data[7:], msb=True)
+        ref_rcvd = serialp.conversions.u8_to_u16(data[5:7], msb=True)
+        adc_rcvd = serialp.conversions.u8_to_u16(data[7:], msb=True)
 
         if adc_rcvd != adc:
             print('{:}|\tADC {:} trip read: could not read trip. ADC sent: {:}. ADC received: {:}.'.format(funcname, adc, adc, adc_rcvd))
