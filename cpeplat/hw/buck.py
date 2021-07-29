@@ -562,3 +562,349 @@ class Buck:
         data = np.array(data)
 
         return data
+
+
+    def read_all_data(self):
+        """Reads data from all ADCs and the control signal.
+
+        Returns
+        -------
+        data or status : list or int
+            Returns a list where each element is a numpy array, containing
+            the measurements. Elements 0 and 1 are Vin and Vin_buck, elements
+            2 and 3 are Vout and Vout_buck, elements 4 and 5 are IL and
+            IL_avg and element 6 is the control signal. If an error occurs
+            when reading the data, returns -1.
+            
+        """
+        vin = self.read_vin_buffer()
+        if vin == -1:
+            print('Error reading Vin.')
+            return -1
+
+        vin_buck = self.read_vin_buck_buffer()
+        if vin_buck == -1:
+            print('Error reading Vin_buck.')
+            return -1
+
+        vout = self.read_vout_buffer()
+        if vin == -1:
+            print('Error reading Vout.')
+            return -1
+
+        vout_buck = self.read_vout_buck.buffer()
+        if vin == -1:
+            print('Error reading Vout_buck.')
+            return -1
+
+        il = self.read_il_buffer()
+        if il == -1:
+            print('Error reading IL.')
+            return -1
+
+        il_avg = self.read_il_avg_buffer()
+        if il_avg == -1:
+            print('Error reading IL_avg.')
+            return -1
+
+        u = self.read_u_buffer()
+        if u == -1:
+            print('Error reading `u`.')
+            return -1
+
+        return [vin, vin_buck, vo, vout_buck, il, il_avg, u]
+
+
+    def _set_trip_vin(self, trip):
+        """Sets the trip value for Vin.
+
+        If an ADC sample is higher than the tripping limit, the PWM signal is
+        disabled on the hardware.
+
+        Parameters
+        ----------
+        trip : int
+            The tripping value.
+
+        Returns
+        -------
+        status : int
+            Returns 0 if the trip was set. Otherwise, returns -1.
+
+        """
+        adc = self.hwm.adc_vin
+
+        status = self.plat.cpu2_trip_set(adc, trip)
+
+        if status != 0:
+            print('Error setting the tripping value for Vin. Error code: {:}'.format(status))
+            return -1
+
+        return 0
+
+
+    def _read_trip_vin(self):
+        """Reads the trip value of Vin.
+
+        Returns
+        -------
+        status : int
+            Returns the triping value, as a positive integer. If an error
+            occurred, returns -1.
+            
+        """
+        adc = self.hwm.adc_vin
+
+        trip = self.plat.cpu2_trip_read(adc)
+
+        if trip < 0:
+            print('Error getting the tripping value for Vin. Error code: {:}'.format(trip))
+            return -1
+
+        return trip
+    
+
+    def _set_trip_vin_buck(self, trip):
+        """Sets the trip value for Vin_buck.
+
+        If an ADC sample is higher than the tripping limit, the PWM signal is
+        disabled on the hardware.
+
+        Parameters
+        ----------
+        trip : int
+            The tripping value.
+
+        Returns
+        -------
+        status : int
+            Returns 0 if the trip was set. Otherwise, returns -1.
+
+        """
+        adc = self.hwm.adc_vin_buck
+
+        status = self.plat.cpu2_trip_set(adc, trip)
+
+        if status != 0:
+            print('Error setting the tripping value for Vin_buck. Error code: {:}'.format(status))
+            return -1
+
+        return 0
+
+
+    def _read_trip_vin_buck(self):
+        """Reads the trip value of Vin_buck.
+
+        Returns
+        -------
+        status : int
+            Returns the triping value, as a positive integer. If an error
+            occurred, returns -1.
+            
+        """
+        adc = self.hwm.adc_vin_buck
+
+        trip = self.plat.cpu2_trip_read(adc)
+
+        if trip < 0:
+            print('Error getting the tripping value for Vin_buck. Error code: {:}'.format(trip))
+            return -1
+
+        return trip
+
+
+    def _set_trip_vout(self, trip):
+        """Sets the trip value for Vout.
+
+        If an ADC sample is higher than the tripping limit, the PWM signal is
+        disabled on the hardware.
+
+        Parameters
+        ----------
+        trip : int
+            The tripping value.
+
+        Returns
+        -------
+        status : int
+            Returns 0 if the trip was set. Otherwise, returns -1.
+
+        """
+        adc = self.hwm.adc_vout
+
+        status = self.plat.cpu2_trip_set(adc, trip)
+
+        if status != 0:
+            print('Error setting the tripping value for Vout. Error code: {:}'.format(status))
+            return -1
+
+        return 0
+
+
+    def _read_trip_vout(self):
+        """Reads the trip value of Vout.
+
+        Returns
+        -------
+        status : int
+            Returns the triping value, as a positive integer. If an error
+            occurred, returns -1.
+            
+        """
+        adc = self.hwm.adc_vout
+
+        trip = self.plat.cpu2_trip_read(adc)
+
+        if trip < 0:
+            print('Error getting the tripping value for Vout. Error code: {:}'.format(trip))
+            return -1
+
+        return trip
+
+
+    def _set_trip_vout_buck(self, trip):
+        """Sets the trip value for Vout_buck.
+
+        If an ADC sample is higher than the tripping limit, the PWM signal is
+        disabled on the hardware.
+
+        Parameters
+        ----------
+        trip : int
+            The tripping value.
+
+        Returns
+        -------
+        status : int
+            Returns 0 if the trip was set. Otherwise, returns -1.
+
+        """
+        adc = self.hwm.adc_vout_buck
+
+        status = self.plat.cpu2_trip_set(adc, trip)
+
+        if status != 0:
+            print('Error setting the tripping value for Vout_buck. Error code: {:}'.format(status))
+            return -1
+
+        return 0
+
+
+    def _read_trip_vout_buck(self):
+        """Reads the trip value of Vout_buck.
+
+        Returns
+        -------
+        status : int
+            Returns the triping value, as a positive integer. If an error
+            occurred, returns -1.
+            
+        """
+        adc = self.hwm.adc_vout_buck
+
+        trip = self.plat.cpu2_trip_read(adc)
+
+        if trip < 0:
+            print('Error getting the tripping value for Vout_buck. Error code: {:}'.format(trip))
+            return -1
+
+        return trip
+
+
+    def _set_trip_il(self, trip):
+        """Sets the trip value for IL.
+
+        If an ADC sample is higher than the tripping limit, the PWM signal is
+        disabled on the hardware.
+
+        Parameters
+        ----------
+        trip : int
+            The tripping value.
+
+        Returns
+        -------
+        status : int
+            Returns 0 if the trip was set. Otherwise, returns -1.
+
+        """
+        adc = self.hwm.adc_il
+
+        status = self.plat.cpu2_trip_set(adc, trip)
+
+        if status != 0:
+            print('Error setting the tripping value for IL. Error code: {:}'.format(status))
+            return -1
+
+        return 0
+
+
+    def _read_trip_il(self):
+        """Reads the trip value of IL.
+
+        Returns
+        -------
+        status : int
+            Returns the triping value, as a positive integer. If an error
+            occurred, returns -1.
+            
+        """
+        adc = self.hwm.adc_il
+
+        trip = self.plat.cpu2_trip_read(adc)
+
+        if trip < 0:
+            print('Error getting the tripping value for IL. Error code: {:}'.format(trip))
+            return -1
+
+        return trip
+
+
+    def _set_trip_il_avg(self, trip):
+        """Sets the trip value for IL_avg.
+
+        If an ADC sample is higher than the tripping limit, the PWM signal is
+        disabled on the hardware.
+
+        Parameters
+        ----------
+        trip : int
+            The tripping value.
+
+        Returns
+        -------
+        status : int
+            Returns 0 if the trip was set. Otherwise, returns -1.
+
+        """
+        adc = self.hwm.adc_il_avg
+
+        status = self.plat.cpu2_trip_set(adc, trip)
+
+        if status != 0:
+            print('Error setting the tripping value for IL_avg. Error code: {:}'.format(status))
+            return -1
+
+        return 0
+
+
+    def _read_trip_il_avg(self):
+        """Reads the trip value of IL_avg.
+
+        Returns
+        -------
+        status : int
+            Returns the triping value, as a positive integer. If an error
+            occurred, returns -1.
+            
+        """
+        adc = self.hwm.adc_il_avg
+
+        trip = self.plat.cpu2_trip_read(adc)
+
+        if trip < 0:
+            print('Error getting the tripping value for IL_avg. Error code: {:}'.format(trip))
+            return -1
+
+        return trip
+    
