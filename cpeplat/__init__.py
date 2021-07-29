@@ -7,3 +7,4 @@ for the Control in Power Electronics (CPE) course at the LRS.
 
 """
 from . import interface
+from . import hw

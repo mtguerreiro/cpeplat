@@ -12,24 +12,7 @@ baud = 115200
 to = 3
 
 # --- Connection and settings ---
-plat = cpe.interface.Interface(COM, baud, to)
-
-#plat.ser.serial.set_buffer_size(65535)
-
-# Changes blinking rate for fun
-plat.cpu1_blink(2000)
-plat.cpu2_blink(2000)
-
-# Sets ADC buffers
-plat.cpu1_adc_buffer_set(0, 2000)
-plat.cpu1_adc_buffer_set(1, 2000)
-plat.cpu1_adc_buffer_set(2, 2000)
-plat.cpu1_adc_buffer_set(3, 2000)
-plat.cpu1_adc_buffer_set(4, 2000)
-plat.cpu1_adc_buffer_set(5, 2000)
-
-plat.cpu2_buffer_set(0, 2000)
-plat.cpu2_buffer_set(1, 2000)
+buck = cpe.hw.buck.Buck(COM, baud, to)
 
 # --- Experiment ---
 def experiment_ol(dc):
