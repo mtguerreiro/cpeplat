@@ -28,6 +28,7 @@ class Commands:
         self.cpu2_trip_enable = 0x11
         self.cpu2_trip_disable = 0x12
         self.cpu2_trip_read = 0x13
+        
 
 class Controllers:
     """Just a list with the controllers accepted by the platform.
@@ -39,6 +40,39 @@ class Controllers:
         
 class Interface:
     """A class to provide an interface to the C2000-based platform.
+
+    ADC mapping
+    -----------
+
+    Functions concerning the ADCs index each individual ADC with a number
+    between 0 and `N`, where `N` is the maximum number of ADCs. The ADCs
+    indexes are mapped to the physical ADCs as follows:
+
+    - ADC 0: ADCIN_A1
+    - ADC 1: ADCIN_A4
+    - ADC 2: ADCIN_A5
+    - ADC 3: ADCIN_B4
+    - ADC 4: ADCIN_B5
+    - ADC 5: ADCIN_C4
+
+    This mapping is valid for all ADC-related settings. For instance, setting
+    the tripping limit for ADC 2 will set the tripping limit for ADC_A5,
+    reading the buffer for ADC 4 will read the buffer of ADC_B5, and so on.
+
+    CPU2 buffer
+    -----------
+
+    The data stored in CPU2's buffer depends on each application. Usually,
+    buffer 0 will hold the control signal. Ultimately, it is up to the user to
+    set the buffers and interpret the data.
+
+    GPIOs
+    -----
+
+    Currently, the interface can set the level of any GPIO. However,
+    initialization of the corresponding pin must be done in firmware. The
+    current interface does not provide any GPIO initialization.
+    
 
     Parameters
     ----------
@@ -52,7 +86,7 @@ class Interface:
         Communication time-out, in seconds. By default, it is 0.2 s.
         
     """
-    def __init__(self, com, baud, to):
+    def __init__(self, com, baud=115200, to=0.2):
         self.ser = serialp.serial.Serial(com, baud, to)
         self.cmd = Commands()
         self.controllers = Controllers()
@@ -92,6 +126,9 @@ class Interface:
             
         """
         funcname = Interface.cpu2_status.__name__
+
+        self._flush_serial()
+        
         cmd = self.cmd.cpu2_status
 
         self.ser.send(cmd)
@@ -122,6 +159,9 @@ class Interface:
         
         """
         funcname = Interface.cpu2_status_clear.__name__
+
+        self._flush_serial()
+        
         cmd = self.cmd.cpu2_status_clear
 
         self.ser.send(cmd)
@@ -200,6 +240,8 @@ class Interface:
         if type(gpio) is not int or type(state) is not int:
             raise TypeError('`gpio` and `state` must be of int type.')
 
+        self._flush_serial()
+        
         data = [gpio, state]
         cmd = self.cmd.cpu2_gpio
 
@@ -242,6 +284,8 @@ class Interface:
         """
         funcname = Interface.cpu2_pwm_enable.__name__
 
+        self._flush_serial()
+        
         cmd = self.cmd.cpu2_pwm_enable
         
         self.ser.send(cmd)    
@@ -277,8 +321,11 @@ class Interface:
         
         """
         funcname = Interface.cpu2_pwm_disable.__name__
-        cmd = self.cmd.cpu2_pwm_disable
 
+        self._flush_serial()
+
+        cmd = self.cmd.cpu2_pwm_disable
+        
         self.ser.send(cmd)
         data = self.ser.read(cmd)
 
@@ -337,7 +384,9 @@ class Interface:
 
         if adc > 255 or adc < 0:
             raise ValueError('`adc` must be a value between 0 and 255.')
-        
+
+        self._flush_serial()
+                
         cmd = self.cmd.cpu1_adc_buffer_set
 
         adc = adc & 0xFF
@@ -407,10 +456,7 @@ class Interface:
         if adc > 255 or adc < 0:
             raise ValueError('`adc` must be a value between 0 and 255.')
         
-        # Flushes input, in case we had any previous communication error
-        while self.ser.serial.in_waiting != 0:
-            self.ser.serial.flushInput()
-            time.sleep(0.1)
+        self._flush_serial()
 
         cmd = self.cmd.cpu1_adc_buffer_read
         data = [adc & 0xFF]
@@ -424,7 +470,7 @@ class Interface:
 
         if len(data) == 1:
             print('{:}|\tADC {:}: command failed. Error: {:}.'.format(funcname, adc, data[0]))
-            return data[0]            
+            return -2           
 
         n = int( len(data) / 2 )
         print('{:}|\tADC {:}: data received. Samples: {:}'.format(funcname, adc, n))
@@ -480,6 +526,8 @@ class Interface:
 
         if size > 65535 or size < 0:
             raise ValueError('`size` must be a value between 0 and 65535.')
+
+        self._flush_serial()
         
         cmd = self.cmd.cpu2_buffer_set
 
@@ -557,10 +605,7 @@ class Interface:
         if buffer > 255 or buffer < 0:
             raise ValueError('`buffer` must be a value between 0 and 255.')
         
-        # Flushes input, in case we had any previous communication error
-        while self.ser.serial.in_waiting != 0:
-            self.ser.serial.flushInput()
-            time.sleep(0.1)
+        self._flush_serial()
 
         cmd = self.cmd.cpu2_buffer_read
 
@@ -628,10 +673,8 @@ class Interface:
             
         """
         funcname = Interface.cpu2_control_mode_set.__name__
-        # Flushes input, in case we had any previous communication error
-        while self.ser.serial.in_waiting != 0:
-            self.ser.serial.flushInput()
-            time.sleep(0.1)
+        
+        self._flush_serial()
 
         cmd = self.cmd.cpu2_control_mode_set
 
@@ -742,6 +785,8 @@ class Interface:
         """
         funcname = Interface.cpu2_control_mode_read.__name__
 
+        self._flush_serial()
+        
         cmd = self.cmd.cpu2_control_mode_read
         self.ser.send(cmd)
         data = self.ser.read(cmd)
@@ -790,10 +835,8 @@ class Interface:
             
         """
         funcname = Interface.cpu2_ref_set.__name__
-        # Flushes input, in case we had any previous communication error
-        while self.ser.serial.in_waiting != 0:
-            self.ser.serial.flushInput()
-            time.sleep(0.1)
+
+        self._flush_serial()
 
         cmd = self.cmd.cpu2_ref_set
 
@@ -845,6 +888,8 @@ class Interface:
         """
         funcname = Interface.cpu2_ref_read.__name__
 
+        self._flush_serial()
+        
         cmd = self.cmd.cpu2_ref_read
         self.ser.send(cmd)
         data = self.ser.read(cmd)
@@ -908,6 +953,7 @@ class Interface:
         if trip > 4095 or trip < 0:
             raise ValueError('`trip` must be a value between 0 and 4095.')
 
+        self._flush_serial()
 
         adc = adc & 0xFF
         trip8 = serialp.conversions.u16_to_u8(trip & 0xFFFF, msb=True)
@@ -971,10 +1017,12 @@ class Interface:
 
         """
         funcname = Interface.cpu2_trip_enable.__name__
-
+        
         if type(adc) is not int:
             raise TypeError('`adc` must be of `int` type.')
 
+        self._flush_serial()
+        
         adc = adc & 0xFF
 
         data = [adc]
@@ -1034,6 +1082,8 @@ class Interface:
         if type(adc) is not int:
             raise TypeError('`adc` must be of `int` type.')
 
+        self._flush_serial()
+        
         adc = adc & 0xFF
 
         data = [adc]
@@ -1093,6 +1143,8 @@ class Interface:
         if type(adc) is not int:
             raise TypeError('`adc` must be of `int` type.')
 
+        self._flush_serial()
+
         adc = adc & 0xFF
 
         data = [adc]
@@ -1125,3 +1177,10 @@ class Interface:
         print('{:}|\tADC {:} trip read: trip read. Value: {:}'.format(funcname, adc_rcvd, ref_rcvd))
 
         return ref_rcvd
+
+
+    def _flush_serial(self):
+        
+        while self.ser.serial.in_waiting != 0:
+            self.ser.serial.flushInput()
+            time.sleep(0.1)

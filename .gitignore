@@ -1,2 +1,4 @@
 cpeplat.egg-info
 cpeplat/__pycache__
+cpeplat/hw/__pycache__
+examples/data

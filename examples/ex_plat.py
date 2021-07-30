@@ -31,6 +31,21 @@ plat.cpu1_adc_buffer_set(5, 2000)
 plat.cpu2_buffer_set(0, 2000)
 plat.cpu2_buffer_set(1, 2000)
 
+# Sets tripping values for all ADCs
+plat.cpu2_trip_set(0, 3000)
+plat.cpu2_trip_set(1, 3000)
+plat.cpu2_trip_set(2, 3000)
+plat.cpu2_trip_set(3, 3000)
+plat.cpu2_trip_set(4, 3000)
+plat.cpu2_trip_set(5, 3000)
+
+plat.cpu2_trip_enable(0)
+plat.cpu2_trip_enable(1)
+plat.cpu2_trip_enable(2)
+plat.cpu2_trip_enable(3)
+plat.cpu2_trip_enable(4)
+plat.cpu2_trip_enable(5)
+
 # --- Experiment ---
 def experiment_ol(dc):
     # Sets control mode to open loop
