@@ -38,6 +38,7 @@ class Controllers:
         self.none = 0
         self.open_loop = 1
         self.pid = 2
+        self.sfb = 3
         
 class Interface:
     """A class to provide an interface to the C2000-based platform.
@@ -735,8 +736,12 @@ class Interface:
             value between 0 and 1.
 
         TypeError
-            If control mode is `pid`, raises TypeError if any of the gains is
-            are not of `float` or `int` type.
+            If control mode is `pid`, raises TypeError if any of the gains are
+            not of `float` or `int` type.
+
+        TypeError
+            If control mode is `sfb`, raises TypeError if any of the gains are
+            not of `float` or `int` type.
             
         """
         funcname = Interface.cpu2_control_mode_set.__name__
@@ -798,6 +803,31 @@ class Interface:
             g_hex = list(struct.pack('f', b1))[::-1]
             data.extend(g_hex)
             g_hex = list(struct.pack('f', b2))[::-1]
+            data.extend(g_hex)
+
+        elif mode == 'sfb':
+            modei = self.controllers.sfb
+            
+            k_il = params['k_il']
+            k_vc = params['k_vc']
+            k_z = params['k_z']
+            dt = params['dt']
+
+            sfb_params = [k_il, k_vc, k_z, dt]
+            for g in sfb_params:
+                if (type(g) is not float) and (type(g) is not int):
+                    raise TypeError('In `sfb` mode, all values must be of either `int` or `float` type.')
+
+            # Control mode 
+            data = [modei]
+            
+            g_hex = list(struct.pack('f', k_il))[::-1]
+            data.extend(g_hex)
+            g_hex = list(struct.pack('f', k_vc))[::-1]
+            data.extend(g_hex)
+            g_hex = list(struct.pack('f', k_z))[::-1]
+            data.extend(g_hex)
+            g_hex = list(struct.pack('f', dt))[::-1]
             data.extend(g_hex)
             
         else:

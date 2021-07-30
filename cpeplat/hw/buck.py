@@ -343,6 +343,32 @@ class Buck:
         return status
 
 
+    def observer_mode(self, mode, params):
+        """Sets observer mode.
+
+        Parameters
+        ------
+        mode : str
+            Observer.
+
+        params : dict
+            A dictionary containing observer parameters.
+
+        Returns
+        -------
+        status : int
+            Returns 0 if command was executed properly, -1 otherwise.
+        
+        """
+        status = self.plat.cpu2_observer_mode_set(mode, params)
+        
+        if status != 0:
+            print('\nError setting the observer mode. Error code: {:}'.format(status))
+            status = -1
+        
+        return status
+
+    
     def set_reference(self, ref):
         """Sets the reference for control modes other than open-loop.
 
@@ -910,7 +936,7 @@ class Buck:
         return trip
 
 
-    def experiment(self, ref, control, params):
+    def experiment(self, ref, control, params, obs=None, obs_params=None):
         """Runs an experiment.
 
         The experiment consists of setting control mode, closing the
@@ -933,6 +959,12 @@ class Buck:
             print('Could not set control mode. Aborting experiment.')
             return -1
 
+        if obs is not None:
+            status = self.observer_mode(obs, obs_params)
+            if status != 0:
+                print('Could not set control mode. Aborting experiment.')
+                return -1
+        
         status = self.close_input_relay()
         if status != 0:
             print('Could not close input relay. Aborting experiment.')
