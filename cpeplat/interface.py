@@ -28,7 +28,8 @@ class Commands:
         self.cpu2_trip_enable = 0x11
         self.cpu2_trip_disable = 0x12
         self.cpu2_trip_read = 0x13
-        
+        self.cpu2_observer_mode_set = 0x14
+        self.cpu2_observer_mode_read = 0x15
 
 class Interface:
     """A class to provide an interface to the C2000-based platform.
@@ -753,14 +754,6 @@ class Interface:
     def cpu2_control_mode_read(self):
         """Gets the control mode.
 
-        Parameters
-        ----------
-        mode : str
-            Control mode.
-
-        data : dict
-            Additional data according to the control mode.
-
         Returns
         -------
         mode : int
@@ -791,7 +784,7 @@ class Interface:
             return -3
 
         mode = serialp.conversions.u8_to_u16(data[5:], msb=True)
-        print('{:}|\tCould mode: {:}.'.format(funcname, mode))
+        print('{:}|\tControl mode read. Mode: {:}.'.format(funcname, mode))
         
         return mode
         
@@ -1164,6 +1157,155 @@ class Interface:
         return ref_rcvd
 
 
+    def cpu2_observer_mode_set(self, mode, params):
+        """Sets the observer mode.
+
+        Parameters
+        ----------
+        mode : str
+            Observer mode.
+
+        data : dict
+            Additional data according to the observer mode.
+
+        Returns
+        -------
+        status : int
+            Status of command. If command was executed successfully, returns 0.
+            Otherwise, returns a negative integer.
+
+        Raises
+        ------
+        TypeError
+            If `mode` is not of `str` type.
+
+        TypeError
+            If `params` is not of `dict` type.
+        
+            
+        """
+        funcname = Interface.cpu2_observer_mode_set.__name__
+        
+        self._flush_serial()
+
+        cmd = self.cmd.cpu2_observer_mode_set
+
+        if type(mode) is not str:
+            raise TypeError('`mode` must be of `str` type.')
+
+        if type(params) is not dict:
+            raise TypeError('`params` must be of `dict` type.')
+            
+        if mode == 'cimini':
+            modei = 1
+            a11 = params['a11']
+            a12 = params['a12']
+            b11 = params['b11']
+            
+            a21 = params['a21']
+            a22 = params['a22']
+            a23 = params['a23']
+            a24 = params['a24']
+            a25 = params['a25']
+            a26 = params['a26']
+            
+            obsparams = [a11, a12, b11, a21, a22, a23, a24, a25, a26]
+            for g in obsparams:
+                if (type(g) is not float) and (type(g) is not int):
+                    raise TypeError('In `cimini` mode, all parameters must be of either `float` or `int` type.')
+            
+            # Observer mode 
+            data = [modei]
+
+            g_hex = list(struct.pack('f', a11))[::-1]
+            data.extend(g_hex)
+            g_hex = list(struct.pack('f', a12))[::-1]
+            data.extend(g_hex)
+            g_hex = list(struct.pack('f', b11))[::-1]
+            data.extend(g_hex)
+            g_hex = list(struct.pack('f', a21))[::-1]
+            data.extend(g_hex)
+            g_hex = list(struct.pack('f', a22))[::-1]
+            data.extend(g_hex)
+            g_hex = list(struct.pack('f', a23))[::-1]
+            data.extend(g_hex)
+            g_hex = list(struct.pack('f', a24))[::-1]
+            data.extend(g_hex)
+            g_hex = list(struct.pack('f', a25))[::-1]
+            data.extend(g_hex)
+            g_hex = list(struct.pack('f', a26))[::-1]
+            data.extend(g_hex)
+            
+        else:
+            print('Mode not recognized')
+            return -1
+
+        self.ser.send(cmd, data)
+        data = self.ser.read(cmd)
+        
+        if data == []:
+            print('{:}|\tObserver mode {:}: failed to communicate with CPU1.'.format(funcname, mode))
+            return -1
+
+        if data[0] != 0:
+            print('{:}|\tObserver mode {:}: command failed. Error: {:}.'.format(funcname, mode, data[0]))
+            return -2
+
+        status = serialp.conversions.u8_to_u16(data[1:5], msb=True)   
+
+        if status != 0:
+            print('{:}|\tObserver mode {:}: could not set mode. Status: {:}.'.format(funcname, mode, status))
+            return -3
+
+        mode_rcvd = serialp.conversions.u8_to_u16(data[5:], msb=True)
+
+        if mode_rcvd != modei:
+            print('{:}|\tObserver mode {:}: could not set mode. Mode sent: {:}. Mode received: {:}.'.format(funcname, modei, modei, mode_rcvd))
+            return -4
+        
+        print('{:}|\tObserver mode {:}: mode set.'.format(funcname, mode_rcvd))
+
+        return status
+    
+
+    def cpu2_observer_mode_read(self):
+        """Gets the observer mode.
+
+        Returns
+        -------
+        mode : int
+            Control mode, if received correctly. Otherwise, returns a
+            negative integer.
+            
+        """
+        funcname = Interface.cpu2_control_mode_read.__name__
+
+        self._flush_serial()
+        
+        cmd = self.cmd.cpu2_control_mode_read
+        self.ser.send(cmd)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tFailed to communicate with CPU1.'.format(funcname))
+            return -1
+        
+        if data[0] == 1:
+            print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. Control mode not read.'.format(funcname))
+            return -2
+
+        status = serialp.conversions.u8_to_u16(data[1:5], msb=True)   
+
+        if status != 0:
+            print('{:}|\tCould not read observer mode. Status: {:}.'.format(funcname, status))
+            return -3
+
+        mode = serialp.conversions.u8_to_u16(data[5:], msb=True)
+        print('{:}|\tObserver mode read. Mode: {:}.'.format(funcname, mode))
+        
+        return mode
+
+    
     def _flush_serial(self):
         
         while self.ser.serial.in_waiting != 0:

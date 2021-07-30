@@ -30,6 +30,7 @@ plat.cpu1_adc_buffer_set(5, 2000)
 
 plat.cpu2_buffer_set(0, 2000)
 plat.cpu2_buffer_set(1, 2000)
+plat.cpu2_buffer_set(2, 2000)
 
 # Sets tripping values for all ADCs
 plat.cpu2_trip_set(0, 3000)
@@ -173,3 +174,17 @@ def read_adcs():
 #plat.cpu2_control_mode_set('pid',{'a1':0.35, 'a2':0.257, 'b0':-0.2, 'b1':2.2, 'b2':-0.9})
 #plat.cpu2_control_mode_set('pid',{'a1':-1.77777, 'a2':0.7777, 'b0':5.756944444444445, 'b1':-11.19999938888889, 'b2':5.445833333333333})
 #plat.cpu2_control_mode_set('ol',{'u':0.1})
+
+def cimini(R, L, C, RL, Rds, ts, rho, alpha, K):
+    a11 = 1 - ts * (RL + Rds) / L
+    a12 = -ts / L
+    b11 = ts / L
+
+    a21 = ts / C
+    a22 = 1 - ts / (R * C) - ts * K / C
+    a23 = ts * K / C
+    a24 = -ts / C
+    a25 = rho
+    a26 = alpha
+
+    return {'a11':a11, 'a12':a12, 'b11':b11, 'a21':a21, 'a22':a22, 'a23':a23, 'a24':a24, 'a25':a25, 'a26':a26}
