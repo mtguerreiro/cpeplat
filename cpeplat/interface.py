@@ -635,6 +635,72 @@ class Interface:
         return data
 
 
+    def cpu2_buffer_read_float(self, buffer):
+        """Reads CPU2's buffer, considering data stored is in floating-point
+        format.
+
+        Parameters
+        ----------
+        buffer : int
+            Buffer to read. It must be an integer between 0 and `N-1`, where
+            `N` is the maximum number of buffers in CPU2. The absolute maximum is
+            set to 255, but the actual value which is limited by the hardware
+            may be lower.
+            
+        Returns
+        -------
+        data or status : list or int
+            CPU2 buffer, as a list. The size of the list depends on how many
+            samples were recorded, but will be at most `N`, where `N` is the
+            buffer size. Also, this function can return a negative integer,
+            in case the command fails.
+
+        Raises
+        ------
+        TypeError
+            If `buffer` is not of `int` type.
+
+        ValueError
+            If `buffer` is not a value between 0 and 255.
+            
+        """
+        funcname = Interface.cpu2_buffer_read.__name__
+
+        if type(buffer) is not int:
+            raise TypeError('`buffer` must be of int type.')
+
+        if buffer > 255 or buffer < 0:
+            raise ValueError('`buffer` must be a value between 0 and 255.')
+        
+        self._flush_serial()
+
+        cmd = self.cmd.cpu2_buffer_read
+
+        data = [buffer & 0xFF]
+
+        self.ser.send(cmd, data)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tFailed to communicate with CPU1 or CPU2 buffer has been set to a size of 0.'.format(funcname))
+            return -1
+
+        if len(data) == 1:
+            print('{:}|\tCommand failed. Error: {:}.'.format(funcname, data[0]))
+            return -2
+
+        n = int( len(data) / 4 )
+        print('{:}|\tData received. Samples: {:}'.format(funcname, n))
+        
+        if n == 0:
+            data = []
+        else:
+            data = [data[4*i:(4*i+4)][::-1] for i in range(n)]
+            data = [struct.unpack('!f', d) for d in data]
+        
+        return data
+
+    
     def cpu2_control_mode_set(self, mode, params):
         """Sets the control mode.
 

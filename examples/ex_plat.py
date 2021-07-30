@@ -188,3 +188,7 @@ def cimini(R, L, C, RL, Rds, ts, rho, alpha, K):
     a26 = alpha
 
     return {'a11':a11, 'a12':a12, 'b11':b11, 'a21':a21, 'a22':a22, 'a23':a23, 'a24':a24, 'a25':a25, 'a26':a26}
+
+
+#plat.cpu2_observer_mode_set('cimini', cimini(1.1, 40e-6, 560e-6, 15e-3, 15e-3, 1/200e3, 0.78, 5, 30))
+#plat.cpu2_observer_mode_set('cimini', cimini(1.1, 47e-6, 560e-6, 15e-3, 15e-3, 1/200e3, 0.78, 100, 30))
