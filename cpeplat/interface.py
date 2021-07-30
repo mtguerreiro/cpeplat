@@ -29,6 +29,14 @@ class Commands:
         self.cpu2_trip_disable = 0x12
         self.cpu2_trip_read = 0x13
 
+class Controllers:
+    """Just a list with the controllers accepted by the platform.
+    """
+    def __init__(self):
+        self.none = 0
+        self.open_loop = 1
+        self.pid = 2
+        
 class Interface:
     """A class to provide an interface to the C2000-based platform.
 
@@ -47,6 +55,7 @@ class Interface:
     def __init__(self, com, baud, to):
         self.ser = serialp.serial.Serial(com, baud, to)
         self.cmd = Commands()
+        self.controllers = Controllers()
         
 
     def cpu1_blink(self, t=1000):
@@ -632,8 +641,14 @@ class Interface:
         if type(params) is not dict:
             raise TypeError('`params` must be of `dict` type.')
 
-        if mode == 'ol':
-            modei = 0
+        if mode == 'none':
+            modei = self.controllers.none
+            
+            # Control mode
+            data = [modei]
+            
+        elif mode == 'ol':
+            modei = self.controllers.open_loop
             u = params['u']
             
             if type(u) is not float:
@@ -643,13 +658,13 @@ class Interface:
                 raise ValueError('In `ol` mode, `u` must be between 0 and 1.')
             
             # Control mode
-            data = [0]
+            data = [modei]
 
             u_hex = list(struct.pack('f', u))[::-1]
             data.extend(u_hex)
             
         elif mode == 'pid':
-            modei = 1
+            modei = self.controllers.pid
             a1 = params['a1']
             a2 = params['a2']
             b0 = params['b0']
@@ -662,7 +677,7 @@ class Interface:
                     raise TypeError('In `pid` mode, gains a1, a2, b0, b1 and b2 must be of float type.')
             
             # Control mode 
-            data = [1]
+            data = [modei]
 
             g_hex = list(struct.pack('f', a1))[::-1]
             data.extend(g_hex)
