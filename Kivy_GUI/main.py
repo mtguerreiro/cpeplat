@@ -3,10 +3,10 @@ import kivy
 import csv
 import numpy as np
 import importlib.util
-inter_spec = importlib.util.spec_from_file_location("interface.py", "../cpeplat/interface.py")
-interface = importlib.util.module_from_spec(inter_spec)
-inter_spec.loader.exec_module(interface)
-interface.Commands()
+#inter_spec = importlib.util.spec_from_file_location("interface.py", "../cpeplat/interface.py")
+#interface = importlib.util.module_from_spec(inter_spec)
+#inter_spec.loader.exec_module(interface)
+#interface.Commands()
 
 from kivy.app import App
 from kivy.uix.popup import Popup
@@ -15,9 +15,9 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.textinput import TextInput
+from kivy.clock import Clock
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.tabbedpanel import TabbedPanelItem
-from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, StringProperty, BooleanProperty
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas
@@ -29,7 +29,35 @@ Window.size = (1000, 600)
 
 def printlog(message):
     with open('./log.txt','a') as f: f.write(message+"\n")
+class StorageObject():
+    def __init__(self):
+        #create new file when class is started
+        self.filepath
+        self.data=DataObject()
+        pass
+    def write_header(self):
+        pass
+    
+    def append_data_to_file(self):
+        #with open(self.filepath, "w") as csvfile:
+         #   pass
+        #cpu1_read_adc_a1(self):
+        #cpu1_read_adc_a1(self):
+        #read data from microcontroller
+        #append data to the right places
+        pass
+   
 
+    def save_file_to_storage(self):
+        #get data from file
+        #divide in files(input and output)
+        #generate file name
+        pass
+    
+    
+    
+    
+    pass
 
 class DataObject():
     def __init__(self,file_in=''):
@@ -173,7 +201,9 @@ class MyFigure(FigureCanvasKivyAgg):
         super().__init__(**kwargs)
         self.size_hint=(0.5, 0.65)
         self.pos_hint={'y': 0.15, 'right':1}
+        
 
+        
 
         
 class FileChoosePopup(Popup):
@@ -184,21 +214,84 @@ class FormLayout(FloatLayout):
 
     pass
 
+
 class Buck(TabbedPanelItem):
     ini=BooleanProperty(False)
     source_forms=ObjectProperty(None)
+
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
         self.actual_data=DataObject('./Store/data_13v_pid.csv')
         self.sample_time=0.1
+        self.v_in_lim=0.0
+        self.v_out_lim=0.0
+        self.i_l_lim=0.0
+        self.v_in=0.0
+        self.v_out=0.0
+        self.i_l=0.0
+        self.pwm=0.0
+        self.v_in_buck=0.0
+        self.v_out_buck=0.0
+        self.i_l_avg=0.0
+        self.event=Clock.schedule_once(lambda dt: self.update_values(), 1)
+        self.event2=Clock.schedule_once(lambda dt: self.upload_limits(), 1)
+        self.event()
+        self.event2()
+    
+    
+    def schedule_update():
+        """define a scheduler for executing update every t, when start is running"""
         
+        pass
+    
+    
     def read_and_store(self):
         
         """read continuously data and store into a file, here follows the C2000 commands"""
         
         pass
     
-    def upload(self):
+    def upload_limits(self):
+        self.v_in_lim+=1 #simulation
+        self.v_out_lim+=1 #
+        self.i_l_lim+=1#
+        
+        """read data and send it to microcontroler when upload button clicked"""
+        print(self.ids["limits_bar"].get_text("v_in_lim"))
+        print(self.ids["limits_bar"].get_text("v_out_lim"))
+        print(self.ids["limits_bar"].get_text("i_l_lim"))
+        
+        
+        """just for testing"""
+        self.ids["limits_bar"].set_text("v_in_lim",self.v_in_lim)
+        self.ids["limits_bar"].set_text("v_out_lim",self.v_out_lim)
+        self.ids["limits_bar"].set_text("i_l_lim",self.i_l_lim)
+
+    def update_values(self):
+        #will be substituted for reading of the values, and scheduled
+        self.v_in+=1
+        self.v_out+=1
+        self.i_l+=1
+        self.pwm+=1
+        self.v_in_buck+=1
+        self.v_out_buck+=1
+        self.i_l_avg+=1
+
+        
+            
+        self.ids["actual_bar"].set_text("v_in",self.v_in)
+        self.ids["actual_bar"].set_text("v_out",self.v_out)
+        self.ids["actual_bar"].set_text("i_l",self.i_l)
+        self.ids["actual_bar"].set_text("pwm",self.pwm)
+        self.ids["actual_bar"].set_text("v_in_buck",self.v_in_buck)
+        self.ids["actual_bar"].set_text("v_out_buck",self.v_out_buck)
+        self.ids["actual_bar"].set_text("i_l_avg",self.i_l_avg)
+
+        pass
+        
+        
+        
+    def update(self):
         """update graph, will run cyclically"""
         self.read_file()
         time_axis=list()
@@ -237,10 +330,34 @@ class Buck(TabbedPanelItem):
         printlog("extension="+self.actual_data.extension)
         if (self.actual_data.extension =='csv'): #add options for when files are different
                 self.actual_data.read_c2000_csv()
+    def upload(self):
+        self.v_in_lim =self.ids.limits_bar.ids.v_in_lim.text
+        self.v_out_lim =self.ids.limits_bar.ids.v_out_lim.text
+        self.i_l_lim =self.ids.limits_bar.ids.i_l_lim.text
+
+
+class ActualValues(BoxLayout):
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+    
+    def get_text(self,id_child):
+        return float(self.ids[id_child].text)
+    def set_text(self, id_child,text_in):
+        self.ids[id_child].text = str(text_in)
+
+class Limits(BoxLayout):
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+    
+    def get_text(self,id_child):
+        return float(self.ids[id_child].text)
+    def set_text(self, id_child,text_in):
+        self.ids[id_child].text = str(text_in)
+
 
                 
-                
 class Analysis(TabbedPanelItem):
+    
     ini=BooleanProperty(False)
     source_forms=ObjectProperty(None)
     def __init__(self,**kwargs):
@@ -299,12 +416,6 @@ class Analysis(TabbedPanelItem):
         self.ids.plot_al.set_title('Analysis Plot')
         self.ids.plot_al.set_new_data(x_data)
         self.ids.plot_al.set_new_legends(legends)
-        
-                
-        #plt.plot(source.getDataListParent(index,scale),label=(row.ids.label_input.text))
-        #plt.legend()
-        #self.new_fig=MyFigure(figure=plt.gcf()) 
-        #self.ids.form_layout.add_widget(self.new_fig)
         
         self.ids.plot_al.draw_my_plot()
         self.ini=False

@@ -66,12 +66,11 @@
             size_hint:(0.5, 0.65)
             pos_hint:{'y': 0.15, 'right':1}
             
-<Buck@TabbedPanelItem>  
+<Buck@TabbedPanelItem> 
     text: 'Buck-Converter'  
     FloatLayout:
         size_hint:(1,1)
         pos_hint: {'x':0,'y':0}
-        id: 'buck_lay'
         b_sy: 0.05
         b_sx: 0.08
         b_px_off:0.0
@@ -81,13 +80,14 @@
             text: 'Upload'
             size_hint: self.parent.b_sx, self.parent.b_sy
             pos_hint: {'x':self.parent.b_px_off, 'y': self.parent.b_py_off}
-            on_press: root.upload()
+            on_press: root.update_values()
         Label:
             text: 'Limits'
             pos_hint:{'x':0.01,'y':0.82}
             size_hint_y: 0.15
             size_hint_x: 0.2
-        Limits:             
+        Limits:         
+            id: limits_bar    
             font_size:18
             pos_hint:{'x':0.03,'y':0.7}
             size_hint_y: 0.15
@@ -106,7 +106,10 @@
             pos_hint:{'x':0.01,'y':0.52} 
             size_hint_y: 0.15
             size_hint_x: 0.2
+      
+        
         ActualValues:
+            id: actual_bar
             font_size:18
             pos_hint:{'x':0.03,'y':0.4}
             size_hint_y: 0.15
@@ -127,6 +130,7 @@
             size_hint_x: 0.2
         Experiment:
             font_size:18
+            id: exp_bar
             pos_hint:{'x':0.03,'y':0.07}
             size_hint_y: 0.15
             size_hint_x: 0.5
@@ -268,17 +272,19 @@
             size_hint_x: None  
             width: 50
         TextInput:
+            id: v_in_lim
             multiline: False
-            text:''
+            text:'0.0'
             size_hint_x: None  
             width: 80
-        Label: 
+        Label:
             text:'I_l'
             multiline: False
             size_hint_x: None 
             width: 50 
         TextInput:
-            text:''
+            id: i_l_lim
+            text:'0.0'
             multiline: False
             size_hint_x: None  
             width: 80
@@ -304,7 +310,8 @@
             size_hint_x: None 
             width: 50 
         TextInput:
-            text:''
+            id: v_out_lim
+            text:'0.0'
             multiline: False
             size_hint_x: None  
             width: 80
@@ -355,13 +362,16 @@
             text:''
         Button:
             text: 'Start'
+            on_press:
         Button:
             text: 'Stop'
+            on_press:
         Button:
             text: 'Export'
+            on_press:
         Button:
             text: 'Save Data'
-            
+            on_press:
             
 
 
@@ -376,6 +386,7 @@
             size_hint_x: None  
             width: 50
         TextInput:
+            id: v_in
             text:''
             multiline: False
             size_hint_x: None  
@@ -385,7 +396,9 @@
             size_hint_x: None 
             width: 50 
         TextInput:
+            id: v_out
             text:''
+            multiline: False
             size_hint_x: None  
             width: 80
         Label: 
@@ -393,6 +406,7 @@
             size_hint_x: None 
             width: 50 
         TextInput:
+            id: i_l
             text:''
             multiline: False
             size_hint_x: None  
@@ -402,6 +416,7 @@
             size_hint_x: None 
             width: 50 
         TextInput:
+            id: pwm
             text:''
             multiline: False
             size_hint_x: None  
@@ -411,6 +426,7 @@
             size_hint_x: None 
             width: 50 
         TextInput:
+            id: v_in_buck
             text:''
             multiline: False
             size_hint_x: None  
@@ -420,6 +436,7 @@
             size_hint_x: None 
             width: 50 
         TextInput:
+            id: v_out_buck
             text:''
             multiline: False
             size_hint_x: None  
@@ -429,7 +446,8 @@
             size_hint_x: None 
             width: 50 
         TextInput:
-            text:''
+            id:i_l_avg
+            text:'0'
             multiline: False
             size_hint_x: None  
             width: 80
