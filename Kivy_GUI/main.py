@@ -14,7 +14,6 @@ from kivy.core.window import Window
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.textinput import TextInput
 from kivy.clock import Clock
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.tabbedpanel import TabbedPanelItem
@@ -23,7 +22,17 @@ from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas
 from kivy.modules import inspector
 import matplotlib.pyplot as plt
+import matplotlib
+import time
 
+plt.style.use('seaborn-colorblind')
+matplotlib.rcParams['mathtext.fontset'] = 'stix'
+matplotlib.rcParams['font.family'] = 'Sans Serif'
+matplotlib.rcParams.update({'font.size': 12})
+plt.rc('axes', unicode_minus=False)
+l_fs = 11
+title_fs = 12.5
+figsize = (5.5,2.3)
 
 Window.size = (1000, 600)
 
@@ -39,6 +48,7 @@ class StorageObject():
         pass
     
     def append_data_to_file(self):
+
         #with open(self.filepath, "w") as csvfile:
          #   pass
         #cpu1_read_adc_a1(self):
@@ -67,8 +77,13 @@ class DataObject():
         self.col_number=0;
         self.extension=''
         self.row_numbers=0
-        self.label_std=['t','Vin','Vin_buck','Vo','Vo_buck','IL','IL_avg','u']
+        self.label_std=['t','$V_{i}$','V_{ib}','$V_o$','$V_{ob}$','I_{l}','I_{lavg)','u']
         printlog("data object created file :"+self.filepath)
+    
+    def set_new_data(self,new_data):
+        new=[]
+        new.append(new_data)
+        self.data=new_data[0].copy()
         
     def read_oscilloscope_file(self):
         new_list=[]
@@ -136,6 +151,7 @@ class FileHeader(BoxLayout):
         self.add_widget(InputsHeader(),0)
         self.source_path=self.ids.get_file.text
         self.data_obj= DataObject()
+
 
      
     file_path = StringProperty("No file chosen")
@@ -218,7 +234,6 @@ class FormLayout(FloatLayout):
 class Buck(TabbedPanelItem):
     ini=BooleanProperty(False)
     source_forms=ObjectProperty(None)
-
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
         self.actual_data=DataObject('./Store/data_13v_pid.csv')
@@ -233,23 +248,22 @@ class Buck(TabbedPanelItem):
         self.v_in_buck=0.0
         self.v_out_buck=0.0
         self.i_l_avg=0.0
+        self.started =False
+        self.filename_voltages_out=''
+        self.filename_voltages_in=''
+        self.filename_currents=''
+        self.filename_output=''
         self.event=Clock.schedule_once(lambda dt: self.update_values(), 1)
         self.event2=Clock.schedule_once(lambda dt: self.upload_limits(), 1)
         self.event()
         self.event2()
-    
+        
     
     def schedule_update():
         """define a scheduler for executing update every t, when start is running"""
         
         pass
     
-    
-    def read_and_store(self):
-        
-        """read continuously data and store into a file, here follows the C2000 commands"""
-        
-        pass
     
     def upload_limits(self):
         self.v_in_lim+=1 #simulation
@@ -268,7 +282,9 @@ class Buck(TabbedPanelItem):
         self.ids["limits_bar"].set_text("i_l_lim",self.i_l_lim)
 
     def update_values(self):
+        "read values, update values on display, update values on the object and store values on file"
         #will be substituted for reading of the values, and scheduled
+        
         self.v_in+=1
         self.v_out+=1
         self.i_l+=1
@@ -277,7 +293,7 @@ class Buck(TabbedPanelItem):
         self.v_out_buck+=1
         self.i_l_avg+=1
 
-        
+
             
         self.ids["actual_bar"].set_text("v_in",self.v_in)
         self.ids["actual_bar"].set_text("v_out",self.v_out)
@@ -291,8 +307,8 @@ class Buck(TabbedPanelItem):
         
         
         
-    def update(self):
-        """update graph, will run cyclically"""
+    def update_plots(self):
+        """update graph, will run cyclically (every 0.1second??)"""
         self.read_file()
         time_axis=list()
         y_graph1 = []
@@ -305,12 +321,83 @@ class Buck(TabbedPanelItem):
         y_graph2=self.getDataListParent([3,4],1).copy()
         y_graph3=self.getDataListParent([5,6],1).copy()
         y_graph4=self.getDataListParent([7],1).copy()
-        print("size y_graph4: ",len(y_graph4))
-        print("size get_data: ",len(self.getDataListParent([7],1)))
+      #  print("size y_graph4: ",len(y_graph4))
+       # print("size get_data: ",len(self.getDataListParent([7],1)))
         self.ids.plot_exp.set_new_data([y_graph1,y_graph2,y_graph3,y_graph4])
         self.ids.plot_exp.draw_my_plot()
         pass
     
+    def save_data(self):
+              
+        """create files"""
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+        print (timestr)
+        self.filename_voltages_in="./Store/voltages_in"+timestr+".csv"
+        self.filename_voltages_out="./Store/voltages_out"+timestr+".csv"
+        self.filename_currents="./Store/currents"+timestr+".csv"
+        self.filename_output="./Store/output"+timestr+".csv"
+        
+        """extract columns and send them to the files"""
+        
+        
+        header= ['V_i','V_ib']
+        data_file=self.getDataListParent([1,2],1).copy()
+        
+        with open(self.filename_voltages_in, 'w', encoding='UTF8', newline='') as f:
+            writer=csv.writer(f,delimiter=',')
+            writer.writerow(header)
+            writer.writerows(data_file)
+            
+        
+        header= ['V_o','V_ob']     
+        data_file=self.getDataListParent([3,4],1).copy()
+        with open(self.filename_voltages_out, 'w', encoding='UTF8', newline='') as f:
+            writer=csv.writer(f,delimiter=',')
+            writer.writerow(header)
+            writer.writerows(data_file)
+        
+        header= ['I_l','I_lavg']
+        data_file=self.getDataListParent([5,6],1).copy()
+        with open(self.filename_currents, 'w', encoding='UTF8', newline='') as f:
+            writer=csv.writer(f,delimiter=',')
+            writer.writerow(header)
+            writer.writerows(data_file)
+        
+        
+        
+        header= ['u','t']
+        data_file=self.getDataListParent([7,0],1).copy()
+        with open(self.filename_output, 'w', encoding='UTF8', newline='') as f:
+            writer=csv.writer(f,delimiter=',')
+            writer.writerow(header)
+            writer.writerows(data_file)
+        
+        
+        
+    def start_converter(self):
+        """sends start command to the converter and starts register/update of graphs"""
+        self.started=True
+        #here send data to start converter
+        
+  
+        """ wait for information that it is finished """
+        
+        ##wait for while signal =False
+        
+        """create data object with this numpy array"""
+        
+        ##receive numpy array
+        #self.actual_data.set_new_data(numpyarrray.tolist())
+        
+
+        
+        
+        
+        pass
+    def stop_converter(self):
+        """sends stop command to the converter and stops register/update of graphs"""
+        
+        pass
     def export_graph(self):
         """save graph to png"""
 
@@ -322,6 +409,7 @@ class Buck(TabbedPanelItem):
         pass
     
     def getDataListParent(self,index,scale):
+        
         return self.actual_data.getDataList(index,scale)  
     
     def read_file(self):
@@ -357,7 +445,9 @@ class Limits(BoxLayout):
 
                 
 class Analysis(TabbedPanelItem):
-    
+    title=ObjectProperty(None)
+    x_label=ObjectProperty(None)
+    y_label=ObjectProperty(None)
     ini=BooleanProperty(False)
     source_forms=ObjectProperty(None)
     def __init__(self,**kwargs):
@@ -368,6 +458,8 @@ class Analysis(TabbedPanelItem):
         self.ini=True  
         self.new_fig=MyFigure(figure=plt.gcf())
         self.new_fig.id="graph"
+        self.event=Clock.schedule_once(lambda dt: self.add_source(), 1)
+        self.event()
 
                 
     def add_source(self):
@@ -406,6 +498,7 @@ class Analysis(TabbedPanelItem):
             pass
         x_data=list()
         legends=list()
+       # legends.append('   ')
         for source in self.source_forms:
             for index,row in enumerate(source.getInputs()):
                 scale=float(row.ids.scale_input.text)
@@ -413,14 +506,13 @@ class Analysis(TabbedPanelItem):
                     x_data.append(source.getDataListParent(index,scale))
                     legends.append(row.ids.label_input.text)
         self.ids.plot_al.set_plot_num(1)
-        self.ids.plot_al.set_title('Analysis Plot')
-        self.ids.plot_al.set_new_data(x_data)
         self.ids.plot_al.set_new_legends(legends)
-        
+        self.ids.plot_al.set_new_data(x_data)
         self.ids.plot_al.draw_my_plot()
         self.ini=False
     
     pass
+
     
 class DrawPlot(BoxLayout):
     def __init__(self, **kwargs):
@@ -429,28 +521,24 @@ class DrawPlot(BoxLayout):
         self.pos_hint={'x':0.5,'right':1} 
         self.plot_num=4;
         self.title='Experiment Plots'
-        self.legends=(['V_in','V_in_Buck'], ['V_out','V_out_Buck'], ['I_l','I_l_AVG'] ,['Control'])
+        self.legends=(['$V_{i}$','$V_{ib}$'], ['$V_o$','$V_{ob}$'], ['$I_l$','$I_{la}$'] ,['$u$'])
         self.labels=list()
         self.y_plot=list()      
         self.test=False
+        self.x_labels=''
+        self.y_labels=''
 
 
 
         
     def draw_my_plot(self):
-        print("children are:")
-        for child in self.children:
-            print(child)
         self.clear_widgets()
-        print("children are:")
-        for child in self.children:
-            print(child)
+
         fig, ax = plt.subplots(self.plot_num)
         #fig.cla()
         if self.plot_num>1:
             if self.title:
-                fig.suptitle(self.title,fontsize=22) 
-
+                fig.suptitle(self.title,fontsize=22 ) 
             for i in range(0,self.plot_num):
 
                 ax[i].cla()
@@ -459,9 +547,23 @@ class DrawPlot(BoxLayout):
             canvas =  FigureCanvas(figure=fig)
                 
         elif self.plot_num==1:
-            for line in self.y_plot:
-                ax.plot(line)
-                ax.legend(self.legends,loc='upper left', ncol=1, shadow=True, fancybox=True)
+            try:        
+                self.set_title(self.parent.title.text)
+                fig.suptitle(self.title,fontsize=22) 
+            except Exception as ve:
+                print(ve)
+            try:        
+                ax.set_xlabel(self.parent.x_label.text,fontsize=16)
+            except Exception as ve:
+                print(ve)
+            try:        
+                ax.set_ylabel(self.parent.y_label.text,fontsize=16)
+            except Exception as ve:
+                print(ve)
+                                
+            for index,line in enumerate(self.y_plot):
+                ax.plot(line)  
+            ax.legend(self.legends,loc='upper left', ncol=1, shadow=True, fancybox=True)        
             canvas =  FigureCanvas(figure=fig) 
             
        
@@ -486,10 +588,12 @@ class DrawPlot(BoxLayout):
     def set_title(self,title):
         self.title=title
         return;
-    def set_labels(self,labels):
-        self.title=labels
+    def set_xlabels(self,labels):
+        self.x_labels=labels
         return;
-        
+    def set_ylabels(self,labels):
+        self.x_labels=labels
+        return;
 class Tabs(TabbedPanel):
     inspector.create_inspector(Window,FileHeader)
 

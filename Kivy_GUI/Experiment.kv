@@ -1,5 +1,6 @@
 
 <Tabs>:
+    font_name: 'Sans Serif'
     size_hint: 1, 1
     do_default_tab: False
     Buck:
@@ -22,6 +23,9 @@
         b_sx: 0.08
         b_px_off:0.0
         b_py_off:0.95
+        title: title
+        x_label: x_label
+        y_label: y_label
         Button:
             id: exp_btn
             text: 'Export'
@@ -65,9 +69,61 @@
             id:plot_al
             size_hint:(0.5, 0.65)
             pos_hint:{'y': 0.15, 'right':1}
+        BoxLayout:
+            size_hint:(0.4, 0.10)
+            pos_hint:{'y': 0.85, 'right':1}
+            GridLayout:
+                id: grid
+                rows:3
+                cols:2
+                Label:
+                    text:'Title:'
+                    font_size:22
+                    size_hint_x:None          
+                    width: 100
+                TextInput
+                    id: title
+                    text: 'example_title'
+                    size_hint_x:None
+                    padding: [0, (self.height-self.line_height)/2]
+                    font_size:22
+                    multiline: False
+                    width:400
+                    on_text_validate: root.title=(self.text)
+                Label:
+                    text:'X Label:'
+                    font_size:22
+                    size_hint_x:None          
+                    width: 100
+                TextInput
+                    id: x_label
+                    text: 'time'
+                    size_hint_x:None
+                    padding: [0, (self.height-self.line_height)/2]
+                    font_size:22
+                    multiline: False
+                    width:400
+                    on_text_validate: root.x_label=(self.text)
+                Label:
+                    text:'Y Label:'
+                    font_size:22
+                    size_hint_x:None          
+                    width: 100
+                TextInput
+                    id: y_label
+                    text: 'variables'
+                    size_hint_x:None
+                    padding: [0, (self.height-self.line_height)/2]
+                    font_size:22
+                    multiline: False
+                    width:400
+                    on_text_validate: root.y_label=(self.text)         
+        
+
             
 <Buck@TabbedPanelItem> 
-    text: 'Buck-Converter'  
+    text: 'Buck-Converter'
+    id: bk_tab  
     FloatLayout:
         size_hint:(1,1)
         pos_hint: {'x':0,'y':0}
@@ -75,6 +131,7 @@
         b_sx: 0.08
         b_px_off:0.0
         b_py_off:0.95
+        bk_tab: bk_tab
         Button:
             id: upl_btn
             text: 'Upload'
@@ -362,7 +419,7 @@
             text:''
         Button:
             text: 'Start'
-            on_press:
+            on_press:root.parent.parent.parent.ids.buck_tab.update_plots()
         Button:
             text: 'Stop'
             on_press:
@@ -371,7 +428,7 @@
             on_press:
         Button:
             text: 'Save Data'
-            on_press:
+            on_press:self.parent.parent.parent.bk_tab.save_data()
             
 
 
