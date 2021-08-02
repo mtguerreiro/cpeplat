@@ -39,6 +39,7 @@ class Controllers:
         self.open_loop = 1
         self.pid = 2
         self.sfb = 3
+        self.dmpc = 4
         
 class Interface:
     """A class to provide an interface to the C2000-based platform.
@@ -829,7 +830,14 @@ class Interface:
             data.extend(g_hex)
             g_hex = list(struct.pack('f', dt))[::-1]
             data.extend(g_hex)
+
+
+        elif mode == 'dmpc':
+            modei = self.controllers.dmpc
             
+            # Control mode 
+            data = [modei]
+                        
         else:
             print('Mode not recognized')
             return -1

@@ -19,8 +19,8 @@ buck = cpe.hw.buck.Buck(COM, baud, to)
 
 # --- Sets up data for experiments ---
 # PID data
-control_pid1 = 'pid'
-params_pid1 = {'a1':-1.6327, 'a2':0.6327, 'b0':1.5703, 'b1':-3.1017, 'b2':1.5321}
+control_pid = 'pid'
+params_pid = {'a1':-1.6327, 'a2':0.6327, 'b0':1.5703, 'b1':-3.1017, 'b2':1.5321}
 
 control_pid2 = 'pid'
 params_pid2 = {'a1':-1.77777, 'a2':0.7777, 'b0':5.756944444444445, 'b1':-11.19999938888889, 'b2':5.445833333333333}
@@ -32,11 +32,16 @@ params_ol = {'u':dc}
 
 # SFB data
 control_sfb = 'sfb'
-params_sfb = {'k_il':0.09437662/2, 'k_vc':0.60625809/2, 'k_z':6020.401591307597/2, 'dt':1/200e3}
+params_sfb = {'k_il':0.09437662/2, 'k_vc':0.60625809/2, 'k_z':6020.401591307597/2, 'dt':1/100e3}
 
-data = []
-for ctl, params in zip([control_pid1, control_ol, control_sfb], [params_pid1, params_ol, params_sfb]):
-    data.append(buck.experiment(ref, ctl, params))
+# SFB data
+control_sfb = 'sfb'
+params_sfb = {'k_il':0.21797013/2, 'k_vc':0.63250998/2, 'k_z':3536.9859347697425/2, 'dt':1/100e3}
+
+
+##data = []
+##for ctl, params in zip([control_pid1, control_ol, control_sfb], [params_pid1, params_ol, params_sfb]):
+##    data.append(buck.experiment(ref, ctl, params))
 
 
 ### Observer parameters
