@@ -183,7 +183,7 @@ class Buck:
         plat.cpu2_blink(hw_default.cpu2_blink)
 
 
-    def status(self):
+    def read_status(self):
         """Gets the status of the controller.
 
         In this case, the status of the controller is the status of CPU2.
@@ -208,7 +208,7 @@ class Buck:
         return status
 
         
-    def status_clear(self):
+    def clear_status(self):
         """Clears the status of the controller.
 
         In this case, the status of the controller is the status of CPU2.
@@ -230,7 +230,7 @@ class Buck:
         return status
     
 
-    def open_input_relay(self):
+    def disable_input_relay(self):
         """Opens the input relay, disconnecting the input voltage from the
         power circuit.
 
@@ -254,7 +254,7 @@ class Buck:
         return status
 
 
-    def close_input_relay(self):
+    def enable_input_relay(self):
         """Closes the input relay, connecting the input voltage to the power
         circuit.
 
@@ -277,7 +277,7 @@ class Buck:
         return status
 
 
-    def open_output_relay(self):
+    def disable_output_relay(self):
         """Opens the output relay, disconnecting the output load from the
         power circuit.
 
@@ -297,7 +297,7 @@ class Buck:
         return status
 
 
-    def close_output_relay(self):
+    def enable_output_relay(self):
         """Closes the output relay, connecting the output load to the power
         circuit.
 
@@ -317,7 +317,7 @@ class Buck:
         return status
 
 
-    def control_mode(self, mode, params):
+    def set_control_mode(self, mode, params):
         """Sets control mode.
 
         Parameters
@@ -343,7 +343,7 @@ class Buck:
         return status
 
 
-    def observer_mode(self, mode, params):
+    def set_observer_mode(self, mode, params):
         """Sets observer mode.
 
         Parameters
@@ -604,40 +604,40 @@ class Buck:
             when reading the data, returns -1.
             
         """
-        vin = self.read_vin_buffer()
-        if vin == -1:
-            print('Error reading Vin.')
-            return -1
+        while 1:
+            vin = self.read_vin_buffer()
+            if type(vin) is not int: break
+            print('Could not read Vin buffer... trying again.') 
 
-        vin_buck = self.read_vin_buck_buffer()
-        if vin_buck == -1:
-            print('Error reading Vin_buck.')
-            return -1
+        while 1:
+            vin_buck = self.read_vin_buck_buffer()
+            if type(vin_buck) is not int: break
+            print('Could not read Vin_buck buffer... trying again.')
 
-        vout = self.read_vout_buffer()
-        if vin == -1:
-            print('Error reading Vout.')
-            return -1
+        while 1:
+            vout = self.read_vout_buffer()
+            if type(vout) is not int: break
+            print('Could not read Vout buffer... trying again.')
 
-        vout_buck = self.read_vout_buck.buffer()
-        if vin == -1:
-            print('Error reading Vout_buck.')
-            return -1
+        while 1:
+            vout_buck = self.read_vout_buck_buffer()
+            if type(vout_buck) is not int: break
+            print('Could not read Vout_buck buffer... trying again.')
+            
+        while 1:
+            il = self.read_il_buffer()
+            if type(il) is not int: break
+            print('Could not read IL buffer... trying again.')
 
-        il = self.read_il_buffer()
-        if il == -1:
-            print('Error reading IL.')
-            return -1
+        while 1:
+            il_avg = self.read_il_avg_buffer()
+            if type(il_avg) is not int: break
+            print('Could not read IL_avg buffer... trying again.')            
 
-        il_avg = self.read_il_avg_buffer()
-        if il_avg == -1:
-            print('Error reading IL_avg.')
-            return -1
-
-        u = self.read_u_buffer()
-        if u == -1:
-            print('Error reading `u`.')
-            return -1
+        while 1:
+            u = self.read_u_buffer()
+            if type(u) is not int: break
+            print('Could not read u buffer... trying again.')
 
         return [vin, vin_buck, vo, vout_buck, il, il_avg, u]
 
@@ -954,30 +954,30 @@ class Buck:
         """
         status = self.set_reference(ref)
         
-        status = self.control_mode(control, params)
+        status = self.set_control_mode(control, params)
         if status != 0:
             print('Could not set control mode. Aborting experiment.')
             return -1
 
         if obs is not None:
-            status = self.observer_mode(obs, obs_params)
+            status = self.set_observer_mode(obs, obs_params)
             if status != 0:
                 print('Could not set control mode. Aborting experiment.')
                 return -1
         
-        status = self.close_input_relay()
+        status = self.enable_input_relay()
         if status != 0:
             print('Could not close input relay. Aborting experiment.')
             return -1
 
-        status = self.close_output_relay()
+        status = self.enable_output_relay()
         if status != 0:
             print('Could not close input relay. Aborting experiment.')
             while 1:
-                status = self.open_input_relay()
+                status = self.disable_input_relay()
                 if status == 0: break
             while 1:
-                status = self.open_output_relay()
+                status = self.disable_output_relay()
                 if status == 0: break
             return -1
 
@@ -987,10 +987,10 @@ class Buck:
         if status != 0:
             print('Could not enable PWM. Aborting experiment.')
             while 1:
-                status = self.open_input_relay()
+                status = self.disable_input_relay()
                 if status == 0: break
             while 1:
-                status = self.open_output_relay()
+                status = self.disable_output_relay()
                 if status == 0: break
             return -1
 
@@ -1005,12 +1005,12 @@ class Buck:
         time.sleep(2)
         
         while 1:
-            status = self.open_input_relay()
+            status = self.disable_input_relay()
             if status == 0: break
             print('Could not open input relay... trying again.')
 
         while 1:
-            status = self.open_output_relay()
+            status = self.disable_output_relay()
             if status == 0: break
             print('Could not open output relay... trying again.')
 
