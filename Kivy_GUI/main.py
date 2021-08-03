@@ -29,12 +29,31 @@ plt.style.use('seaborn-colorblind')
 matplotlib.rcParams['mathtext.fontset'] = 'stix'
 matplotlib.rcParams['font.family'] = 'Sans Serif'
 matplotlib.rcParams.update({'font.size': 12})
-plt.rc('axes', unicode_minus=False)
-l_fs = 11
-title_fs = 12.5
-figsize = (5.5,2.3)
+matplotlib.rcParams["figure.dpi"] =300
+l_fs = 4.5
+title_fs = 5
+matplotlib.rcParams['savefig.format'] ='pdf'
+matplotlib.rcParams['savefig.dpi'] =600
+matplotlib.rcParams['lines.linewidth'] =0.75
+matplotlib.rcParams['axes.titlesize'] =title_fs
+matplotlib.rcParams['xtick.labelsize'] =l_fs
+matplotlib.rcParams['ytick.labelsize'] =l_fs
+matplotlib.rcParams['figure.constrained_layout.use'] =True
+#matplotlib.rcParams['figure.autolayout'] =True
+matplotlib.rcParams['figure.figsize'] =(10,10)
+matplotlib.rcParams['figure.titlesize'] ='medium'
+matplotlib.rcParams['legend.fontsize'] =4
+matplotlib.rcParams['legend.fancybox'] =False
+matplotlib.rcParams['legend.framealpha'] =0.5
+matplotlib.rcParams['grid.alpha'] =0.5
+matplotlib.rcParams['figure.constrained_layout.hspace'] =0.000
 
-Window.size = (1000, 600)
+
+ 
+plt.rc('axes', unicode_minus=False)
+
+
+Window.size = (1000, 800)
 
 def printlog(message):
     with open('./log.txt','a') as f: f.write(message+"\n")
@@ -218,7 +237,9 @@ class MyFigure(FigureCanvasKivyAgg):
         self.size_hint=(0.5, 0.65)
         self.pos_hint={'y': 0.15, 'right':1}
         
-
+        
+class AnalysisPopup(Popup):
+    al_window = ObjectProperty()
         
 
         
@@ -253,6 +274,7 @@ class Buck(TabbedPanelItem):
         self.filename_voltages_in=''
         self.filename_currents=''
         self.filename_output=''
+        self.timestr=""
         self.event=Clock.schedule_once(lambda dt: self.update_values(), 1)
         self.event2=Clock.schedule_once(lambda dt: self.upload_limits(), 1)
         self.event()
@@ -284,7 +306,7 @@ class Buck(TabbedPanelItem):
     def update_values(self):
         "read values, update values on display, update values on the object and store values on file"
         #will be substituted for reading of the values, and scheduled
-        
+
         self.v_in+=1
         self.v_out+=1
         self.i_l+=1
@@ -330,48 +352,61 @@ class Buck(TabbedPanelItem):
     def save_data(self):
               
         """create files"""
-        timestr = time.strftime("%Y%m%d-%H%M%S")
-        print (timestr)
-        self.filename_voltages_in="./Store/voltages_in"+timestr+".csv"
-        self.filename_voltages_out="./Store/voltages_out"+timestr+".csv"
-        self.filename_currents="./Store/currents"+timestr+".csv"
-        self.filename_output="./Store/output"+timestr+".csv"
+        self.timestr = time.strftime("%Y%m%d-%H%M%S")
+        print (self.timestr)
+        self.filename_voltages_in="./Store/voltages_in"+self.timestr+".csv"
+        self.filename_voltages_out="./Store/voltages_out"+self.timestr+".csv"
+        self.filename_currents="./Store/currents"+self.timestr+".csv"
+        self.filename_output="./Store/output"+self.timestr+".csv"
         
         """extract columns and send them to the files"""
         
-        
-        header= ['V_i','V_ib']
-        data_file=self.getDataListParent([1,2],1).copy()
-        
-        with open(self.filename_voltages_in, 'w', encoding='UTF8', newline='') as f:
-            writer=csv.writer(f,delimiter=',')
-            writer.writerow(header)
-            writer.writerows(data_file)
+        try:
+            header= ['V_i','V_ib']
+            data_file=self.getDataListParent([1,2],1).copy()
             
-        
-        header= ['V_o','V_ob']     
-        data_file=self.getDataListParent([3,4],1).copy()
-        with open(self.filename_voltages_out, 'w', encoding='UTF8', newline='') as f:
-            writer=csv.writer(f,delimiter=',')
-            writer.writerow(header)
-            writer.writerows(data_file)
-        
-        header= ['I_l','I_lavg']
-        data_file=self.getDataListParent([5,6],1).copy()
-        with open(self.filename_currents, 'w', encoding='UTF8', newline='') as f:
-            writer=csv.writer(f,delimiter=',')
-            writer.writerow(header)
-            writer.writerows(data_file)
-        
-        
-        
-        header= ['u','t']
-        data_file=self.getDataListParent([7,0],1).copy()
-        with open(self.filename_output, 'w', encoding='UTF8', newline='') as f:
-            writer=csv.writer(f,delimiter=',')
-            writer.writerow(header)
-            writer.writerows(data_file)
-        
+            with open(self.filename_voltages_in, 'w', encoding='UTF8', newline='') as f:
+                writer=csv.writer(f,delimiter=',')
+                writer.writerow(header)
+                writer.writerows(data_file)
+                
+            
+            header= ['V_o','V_ob']     
+            data_file=self.getDataListParent([3,4],1).copy()
+            with open(self.filename_voltages_out, 'w', encoding='UTF8', newline='') as f:
+                writer=csv.writer(f,delimiter=',')
+                writer.writerow(header)
+                writer.writerows(data_file)
+            
+            header= ['I_l','I_lavg']
+            data_file=self.getDataListParent([5,6],1).copy()
+            with open(self.filename_currents, 'w', encoding='UTF8', newline='') as f:
+                writer=csv.writer(f,delimiter=',')
+                writer.writerow(header)
+                writer.writerows(data_file)
+            
+            
+            
+            header= ['u','t']
+            data_file=self.getDataListParent([7,0],1).copy()
+            with open(self.filename_output, 'w', encoding='UTF8', newline='') as f:
+                writer=csv.writer(f,delimiter=',')
+                writer.writerow(header)
+                writer.writerows(data_file)
+        except Exception as ve:
+            print(ve)
+            
+    def export_graph(self):
+        """save graph to png"""
+        filepath="./Graphs/"+"Buck_"+self.timestr+".png"
+        filename="Buck_"+str(self.timestr)+".png"
+        if str(self.timestr):
+            self.ids.plot_exp.export_to_png(filename)
+            print("file saved sucessfully")
+        else:
+            print("save data first")
+
+        pass   
         
         
     def start_converter(self):
@@ -398,10 +433,7 @@ class Buck(TabbedPanelItem):
         """sends stop command to the converter and stops register/update of graphs"""
         
         pass
-    def export_graph(self):
-        """save graph to png"""
 
-        pass
         
     def save_data_to_files(self):
         """save data from temporary file to a defined file"""
@@ -450,6 +482,7 @@ class Analysis(TabbedPanelItem):
     y_label=ObjectProperty(None)
     ini=BooleanProperty(False)
     source_forms=ObjectProperty(None)
+    the_popup=ObjectProperty(None)
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
         self.source_forms=[]
@@ -486,7 +519,10 @@ class Analysis(TabbedPanelItem):
                 if (source.ids.get_file.text != ''):
                     source.data_list.append(DataObject(source.ids.getfile.text))
                     
-
+ 
+    def open_popup(self):
+        self.the_popup = AnalysisPopup()
+        self.the_popup.open()
                 
     def update_graphs(self):   
         try:
@@ -538,12 +574,13 @@ class DrawPlot(BoxLayout):
         #fig.cla()
         if self.plot_num>1:
             if self.title:
-                fig.suptitle(self.title,fontsize=22 ) 
+                fig.suptitle(self.title) 
             for i in range(0,self.plot_num):
 
                 ax[i].cla()
                 ax[i].plot(self.y_plot[i])
-                ax[i].legend(self.legends[i],loc='upper left', ncol=1, shadow=True, fancybox=True)
+                ax[i].legend(self.legends[i],loc='upper left', ncol=2)
+                ax[i].grid()
             canvas =  FigureCanvas(figure=fig)
                 
         elif self.plot_num==1:
@@ -553,17 +590,18 @@ class DrawPlot(BoxLayout):
             except Exception as ve:
                 print(ve)
             try:        
-                ax.set_xlabel(self.parent.x_label.text,fontsize=16)
+                ax.set_xlabel(self.parent.x_label.text)
             except Exception as ve:
                 print(ve)
             try:        
-                ax.set_ylabel(self.parent.y_label.text,fontsize=16)
+                ax.set_ylabel(self.parent.y_label.text)
             except Exception as ve:
                 print(ve)
                                 
             for index,line in enumerate(self.y_plot):
                 ax.plot(line)  
-            ax.legend(self.legends,loc='upper left', ncol=1, shadow=True, fancybox=True)        
+                ax.grid()
+            ax.legend(self.legends,loc='upper left', ncol=2)        
             canvas =  FigureCanvas(figure=fig) 
             
        

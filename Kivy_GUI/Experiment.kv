@@ -10,10 +10,9 @@
         
 <DrawPlot@BoxLayout>    
     orientation: 'vertical'
-    size_hint:(0.46,0.8)
-    pos_hint: {'x':0.54,'y':0.1}
-        
-    
+    size_hint:(0.46,1)
+    pos_hint: {'x':0.54,'y':0.0}
+  
 <Analysis@TabbedPanelItem> 
     text: 'Analysis'
     FloatLayout:
@@ -64,13 +63,19 @@
             id: import_cfg
             text: 'Import Cfg'
             size_hint: self.parent.b_sx, self.parent.b_sy
-            pos_hint: {'x':self.parent.b_px_off+6*self.parent.b_sx, 'y':self.parent.b_py_off}  
+            pos_hint: {'x':self.parent.b_px_off+6*self.parent.b_sx, 'y':self.parent.b_py_off} 
+        Button:
+            id: new_popup
+            text: 'New Analysis'
+            size_hint: self.parent.b_sx, self.parent.b_sy
+            pos_hint: {'x':self.parent.b_px_off+7*self.parent.b_sx, 'y':self.parent.b_py_off} 
+            on_press: root.open_popup()  
         DrawPlot:
             id:plot_al
             size_hint:(0.5, 0.65)
             pos_hint:{'y': 0.15, 'right':1}
         BoxLayout:
-            size_hint:(0.4, 0.10)
+            size_hint:(0.3, 0.10)
             pos_hint:{'y': 0.85, 'right':1}
             GridLayout:
                 id: grid
@@ -425,7 +430,7 @@
             on_press:
         Button:
             text: 'Export'
-            on_press:
+            on_press:self.parent.parent.parent.bk_tab.export_graph()
         Button:
             text: 'Save Data'
             on_press:self.parent.parent.parent.bk_tab.save_data()
@@ -508,14 +513,18 @@
             multiline: False
             size_hint_x: None  
             width: 80
-            
+
+
+
+<AnalysisPopUp@Popup>
+    Analysis:              
 <MyFigure@BoxLayout>
 
 
 <FileChoose@BoxLayout>
     orientation:'vertical'
                
-               
+
             
 <FileChoosePopup>:
     title: "Choose a .CSV File"
