@@ -40,3 +40,24 @@ controllers = [['ol', ol_params], ['pid', pid_params_1], ['pid', pid_params_2], 
 ##data = []
 ##for ctl in controllers:
 ##    data.append(buck.experiment(ref, ctl[0], ctl[1]))
+
+
+# --- Observer ---
+def cimini(R, L, C, RL, Rds, ts, rho, alpha, K):
+    a11 = 1 - ts * (RL + Rds) / L
+    a12 = -ts / L
+    b11 = ts / L
+
+    a21 = ts / C
+    a22 = 1 - ts / (R * C) - ts * K / C
+    a23 = ts * K / C
+    a24 = -ts / C
+    a25 = rho
+    a26 = alpha
+
+    return {'a11':a11, 'a12':a12, 'b11':b11, 'a21':a21, 'a22':a22, 'a23':a23, 'a24':a24, 'a25':a25, 'a26':a26}
+
+# Observer parameters
+observer = 'cimini'
+#obs_params = cimini(1.1, 47e-6, 470e-6, 25e-3, 25e-3, 1/50e3, 0.78, 0.5, 10)
+obs_params = cimini(1.1, 60e-6, 470e-6, 25e-3, 25e-3, 1/50e3, 0.78, 0.5, 10)
