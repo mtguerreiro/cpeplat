@@ -14,6 +14,8 @@ class BuckHWM:
         self.adc_vout_buck = 5
         
         self.cpu2_buffer_u = 0
+        self.cpu2_buffer_1 = 1
+        self.cpu2_buffer_2 = 2
 
         self.gpio_input_relay = 8
         self.gpio_output_relay = 9
@@ -156,7 +158,9 @@ class Buck:
         plat.cpu1_adc_buffer_set(hwm.adc_il_avg, hw_default.il_avg_buffer_size)
 
         plat.cpu2_buffer_set(hwm.cpu2_buffer_u, hw_default.u_buffer_size)
-
+        plat.cpu2_buffer_set(hwm.cpu2_buffer_1, hw_default.u_buffer_size)
+        plat.cpu2_buffer_set(hwm.cpu2_buffer_2, hw_default.u_buffer_size)
+                
         # Sets and enable tripping for all ADCs
         status = 0
         status = plat.cpu2_trip_set(hwm.adc_vin, hw_default.vin_trip)
