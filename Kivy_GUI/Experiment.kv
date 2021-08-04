@@ -126,17 +126,18 @@
                     size_hint: self.parent.b_sx, self.parent.b_sy
                     pos_hint: {'x':self.parent.b_px_off+3*self.parent.b_sx, 'y':self.parent.b_py_off} 
                     on_press: root.open_popup() 
-           #     Button:
-            #        id: save_cfg
-             #       text: 'Save Cfg'
-              #      size_hint: self.parent.b_sx, self.parent.b_sy
-               #     pos_hint: {'x':self.parent.b_px_off+5*self.parent.b_sx, 'y':self.parent.b_py_off}    
-             #   Button:
-              #      id: import_cfg
-               #     text: 'Import Cfg'
-                #    size_hint: self.parent.b_sx, self.parent.b_sy
-                 #   pos_hint: {'x':self.parent.b_px_off+6*self.parent.b_sx, 'y':self.parent.b_py_off} 
-              
+                Button:
+                    id: save_cfg
+                    text: 'Save Cfg'
+                    size_hint: self.parent.b_sx, self.parent.b_sy
+                    pos_hint: {'x':self.parent.b_px_off+4*self.parent.b_sx, 'y':self.parent.b_py_off}  
+                    on_press: root.save_config()  
+                Button:
+                    id: import_cfg
+                    text: 'Import Cfg'
+                    size_hint: self.parent.b_sx, self.parent.b_sy
+                    pos_hint: {'x':self.parent.b_px_off+5*self.parent.b_sx, 'y':self.parent.b_py_off} 
+                    on_press: root.load_config()
 
 
             FloatLayout:

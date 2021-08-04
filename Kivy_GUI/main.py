@@ -9,7 +9,7 @@ from list_ports import serial_ports
 #interface = importlib.util.module_from_spec(inter_spec)
 #inter_spec.loader.exec_module(interface)
 #interface.Commands()
-
+import json
 from kivy.app import App
 from kivy.uix.spinner import Spinner
 from kivy.uix.popup import Popup
@@ -130,6 +130,7 @@ class DataObject():
                 new_list.append(new_row)
             self.col_number=len(new_row)
         self.data=new_list.copy()
+
     def read_c2000_csv(self):
         new_list=[]
         with open(self.filepath, "r") as csvfile:
@@ -202,10 +203,17 @@ class FileHeader(BoxLayout):
                 for i in range(0,self.data_obj.col_number):
                     self.add_input()
                     
-                #self.data1.getDataList())
+
             except ValueError as ve:
                 print(ve)
+        if (self.data_obj.extension =='csv'): #add options for when files are different
+            try:
+                self.data_obj.read_c2000_csv()
+                for i in range(0,self.data_obj.col_number):
+                    self.add_input()    
 
+            except ValueError as ve:
+                print(ve)
         
     def add_input(self):
         if self.input_num<self.data_obj.getColNum():      
@@ -412,7 +420,6 @@ class Buck(TabbedPanelItem):
         filename="Buck_"+str(self.timestr)+".png"
         if str(self.timestr):
             self.ids.plot_exp.export_to_png(filename)
-            self.ids.plot_al.export_to_png(filename)
             source ="./"+filename
             destination="./Images/Experiment/"+filename
             os.replace(source,destination)
@@ -511,6 +518,53 @@ class Analysis(BoxLayout):
         self.event=Clock.schedule_once(lambda dt: self.add_source(), 1)
         self.event()
 
+
+    def save_config(self):
+        config_list = list()
+        labels=list()
+        scales=list()
+        check_status=list()
+        
+        
+        for source in self.source_forms:  
+            path=source.ids.get_file.text
+            if path != '':
+                labels=[]
+                scales=[]
+                check_status=[]
+
+                for input_line in source.input_rows:
+                    labels.append(input_line.ids.label_input.text)
+                    scales.append(input_line.ids.scale_input.text)
+                    check_status.append(input_line.ids.checkbox_show.active)
+
+                config_list.append([path,labels,scales,check_status])
+        print(config_list)
+        with open("config.json", "w") as outfile:
+             json.dump(config_list, outfile)
+
+    def load_config(self):
+        with open("config.json", "r") as infile:
+            config_list=json.load(infile)
+        print(config_list)
+
+        """add new sources and lines"""
+        for s_ind, line in enumerate(config_list, start=0):
+            if s_ind >=len(self.source_forms):
+                print("adding source: ",s_ind)
+                self.add_source()
+            self.source_forms[s_ind].ids.get_file.text=line[0]
+            self.source_forms[s_ind].load_text_input()
+            for l_ind, in_row in enumerate(self.source_forms[s_ind].input_rows):
+                print(l_ind)
+                try:
+                    in_row.ids.label_input.text=line[1][l_ind]
+                    in_row.ids.scale_input.text=line[2][l_ind]
+                    in_row.ids.checkbox_show.active=line[3][l_ind]
+                    print("config.json info loaded sucessfully")
+                except Exception as ve:
+                    print(ve)
+        self.update_graphs()
                 
     def add_source(self):
 
