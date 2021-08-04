@@ -18,7 +18,6 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.button import Button
-from kivy.uix.dropdown import DropDown
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.clock import Clock
@@ -32,6 +31,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import time
 import os
+from subprocess import Popen, PIPE
 
 plt.style.use('seaborn-colorblind')
 matplotlib.rcParams['mathtext.fontset'] = 'stix'
@@ -255,11 +255,6 @@ class MyFigure(FigureCanvasKivyAgg):
         self.pos_hint={'y': 0.15, 'right':1}
         
         
-class AnalysisPopup(Popup):
-    al_window = ObjectProperty()
-        
-
-        
 class FileChoosePopup(Popup):
     load = ObjectProperty()
     
@@ -444,10 +439,7 @@ class Buck(TabbedPanelItem):
         
         ##receive numpy array
         #self.actual_data.set_new_data(numpyarrray.tolist())
-        
-
-        
-        
+           
         
         pass
     def stop_converter(self):
@@ -455,11 +447,7 @@ class Buck(TabbedPanelItem):
         
         pass
 
-        
-    def save_data_to_files(self):
-        """save data from temporary file to a defined file"""
-        
-        pass
+
     
     def getDataListParent(self,index,scale):
         
@@ -592,8 +580,7 @@ class Analysis(BoxLayout):
                     
  
     def open_popup(self):
-        self.the_popup = AnalysisPopup()
-        self.the_popup.open()
+        process = Popen(['python3', 'main_analysis.py'], stdout=PIPE, stderr=PIPE)
                 
     def update_graphs(self):
         try:
