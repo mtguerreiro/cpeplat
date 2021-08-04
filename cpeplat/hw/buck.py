@@ -18,6 +18,26 @@ class BuckHWM:
         self.gpio_input_relay = 8
         self.gpio_output_relay = 9
         self.gpio_fault_enable = 10
+        
+        self.vref_limit = 30
+        self.sample_time = 5e-06
+        
+        
+        self.vin_buck_offset = 0
+        self.vin_offset = 0
+        self.vout_offset = 0
+        self.vout_buck_offset = 0 
+        self.il_offset = -2.5/50e-03
+        self.il_avg_offset = -2.5/50e-03
+        self.u_offset = 0
+        
+        self.vin_buck_gain = self.vref_limit/4095
+        self.vin_gain = self.vref_limit/4095
+        self.vout_gain = self.vref_limit/4095
+        self.vout_buck_gain = self.vref_limit/4095 
+        self.il_gain = 1/50e-03
+        self.il_avg_gain = 1/50e-03
+        self.u_gain = 0
 
 
 class BuckHWDefaultSettings:
@@ -383,7 +403,20 @@ class Buck:
             Returns 0 if command was executed properly, -1 otherwise.
         
         """
-        status = self.plat.cpu2_ref_set(ref)
+        
+        # Check for Right Input
+        if type(ref) is not int and type(ref) is not float:
+            raise TypeError('`ref` must be of `int` or `float` type.')
+
+        if ref > self.hwm.vref_limit or ref < 0:
+            raise ValueError('`ref` must be a value between 0 and ' + str(self.hwm.vref_limit) + '.')         
+         
+        # Get Reference from 0 -30 V  to 0 - 4095
+        ref_adc = ref * (4095/self.hwm.vref_limit);
+        ref_adc = round(ref_adc); #Getting Integer Value
+        
+        
+        status = self.plat.cpu2_ref_set(ref_adc)
         
         if status != 0:
             print('\nError setting the reference. Error code: {:}'.format(status))
@@ -449,6 +482,8 @@ class Buck:
             return -1
 
         data = np.array(data)
+    # Calculate back in Voltage value        
+        data = data * self.hwm.vin_gain + self.hwm.vin_offset
 
         return data
 
@@ -472,6 +507,8 @@ class Buck:
             return -1
 
         data = np.array(data)
+    # Calculate back in Voltage value        
+        data = data * self.hwm.vin_buck_gain + self.hwm.vin_buck_offset
 
         return data
 
@@ -495,7 +532,9 @@ class Buck:
             return -1
 
         data = np.array(data)
-
+    # Calculate back in Voltage value        
+        data = data * self.hwm.vout_gain + self.hwm.vout_offset
+        
         return data
 
 
@@ -518,7 +557,9 @@ class Buck:
             return -1
 
         data = np.array(data)
-
+    # Calculate back in Voltage value        
+        data = data * self.hwm.vout_buck_gain + self.hwm.vout_buck_offset
+        
         return data
 
 
@@ -541,6 +582,9 @@ class Buck:
             return -1
 
         data = np.array(data)
+    # Calculate back in Current (A) value     
+
+        data = data * self.hwm.il_gain + self.hwm.il_offset
 
         return data
 
@@ -565,6 +609,10 @@ class Buck:
 
         data = np.array(data)
 
+    # Calculate back in Current (A) value     
+
+        data = data * self.hwm.il_avg_gain + self.hwm.il_avg_offset
+    
         return data
 
 
@@ -639,7 +687,7 @@ class Buck:
             if type(u) is not int: break
             print('Could not read u buffer... trying again.')
 
-        return [vin, vin_buck, vo, vout_buck, il, il_avg, u]
+        return [vin, vin_buck, vout, vout_buck, il, il_avg, u]
 
 
     def _set_trip_vin(self, trip):
@@ -1017,7 +1065,7 @@ class Buck:
         while 1:
             vin = self.read_vin_buffer()
             if type(vin) is not int: break
-            print('Could not read Vin buffer... trying again.') 
+            print('Could not read Vin buffer... trying again.')
 
         while 1:
             vin_buck = self.read_vin_buck_buffer()
@@ -1048,8 +1096,16 @@ class Buck:
             u = self.read_u_buffer()
             if type(u) is not int: break
             print('Could not read u buffer... trying again.')
+            
+        #Creating time Vector: 
+        # t in mili seconds
+        SampleList = list(range(0,len(vout)));
+        t = [element *self.hwm.sample_time*1000 for element in SampleList];
+        t = np.array(t) # t in mili seconds
+        
 
-        data = [vin, vin_buck, vout, vout_buck, il, il_avg, u]
+
+        data = [t, vin, vin_buck, vout, vout_buck, il, il_avg, u]
 
         return data
             
