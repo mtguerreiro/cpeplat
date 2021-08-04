@@ -7,7 +7,7 @@ import time
 plt.ion()
 
 # --- Input ---
-COM = 'COM12'
+COM = 'COM8'
 baud = 115200
 to = 3
 
@@ -32,6 +32,6 @@ controllers = [['ol', ol_params], ['pid', pid_params_1], ['pid', pid_params_2], 
 
 # --- Runs experiments with all parameters ---
 
-data = []
-for ctl in controllers:
-    data.append(buck.experiment(ref, ctl[0], ctl[1]))
+# data = []
+# for ctl in controllers:
+#    data.append(buck.experiment(ref, ctl[0], ctl[1]))
