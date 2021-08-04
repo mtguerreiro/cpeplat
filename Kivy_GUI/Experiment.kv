@@ -3,126 +3,202 @@
     font_name: 'Sans Serif'
     size_hint: 1, 1
     do_default_tab: False
+    Start:
+        id: start_tab
     Buck:
         id:buck_tab
-    Analysis:    
+    AnalysisTab:    
         id:al_tab
+
+<Start@TabbedPanelItem> 
+    text:'Start'
+    port_select: port_select
+    port_name: ''
+    
+    FloatLayout:
+        size_hint:(1,1)
         
+        Image:
+            size_hint:(0.8,0.5)
+            pos_hint:{'y':0.2,'left':0.05}
+            source: 'sbuck-lm.png'
+            allow_stretch: True
+
+        BoxLayout:
+            orientation:'horizontal'
+            size_hint:(1.0,0.16)
+           # size:(500,40) 
+            pos_hint:{'y':0.82,'x':0.00}  
+            canvas:
+                Color:
+                    rgba: 0.7,0.7,0.7,0.5
+                Line:                
+                    width:3
+                    points: self.x+30,self.center_y,self.right-30,self.center_y  
+            GridLayout:
+                id: grid
+                rows:2
+                cols:4
+                spacing:30
+
+                Label:
+                    id:select_com
+                    text: 'Serial Port:'
+                CommSelect:
+                    id: port_select
+                    #size_hint:(1,1)
+                Button:
+                    text:'Connect'
+                Label:
+                    id:status_conn
+                    text:'Not Connected'
+                Label:
+                    id:select_com
+                    text: 'Experiment:'
+                Spinner:
+                    text: 'Choose Experiment'
+                    values:['Buck-Converter','Experiment2','Experiment3']
+
+
+               
+
+
+
+
+   
+
 <DrawPlot@BoxLayout>    
     orientation: 'vertical'
     size_hint:(0.46,1)
     pos_hint: {'x':0.54,'y':0.0}
-  
-<Analysis@TabbedPanelItem> 
+<AnalysisTab@TabbedPanelItem>
     text: 'Analysis'
-    FloatLayout:
-        size_hint:(1,1)
-        id:form_layout
-        b_sy: 0.05
-        b_sx: 0.08
-        b_px_off:0.0
-        b_py_off:0.95
-        title: title
-        x_label: x_label
-        y_label: y_label
-        Button:
-            id: exp_btn
-            text: 'Export'
-            size_hint: self.parent.b_sx, self.parent.b_sy
-            pos_hint: {'x':self.parent.b_px_off, 'y': self.parent.b_py_off}
-            on_press: self.ids.graph._print_image()
-        Button:
-            id: save_btn
-            text: 'Save'
-            size_hint: self.parent.b_sx, self.parent.b_sy
-            pos_hint: {'x':self.parent.b_px_off+self.parent.b_sx, 'y': self.parent.b_py_off}
-        Button:
-            id: upd_btn
-            text: 'Update'
-            size_hint: self.parent.b_sx, self.parent.b_sy
-            pos_hint: {'x':self.parent.b_px_off+2*self.parent.b_sx, 'y':self.parent.b_py_off}    
-            on_press: root.update_graphs()
-        Button:
-            id: add_btn
-            text: 'Add Src'
-            size_hint: self.parent.b_sx, self.parent.b_sy
-            pos_hint: {'x':self.parent.b_px_off+3*self.parent.b_sx, 'y':self.parent.b_py_off} 
-            on_press: root.add_source()
-        Button:
-            id: rem_btn
-            text: 'Rem Src'
-            size_hint: self.parent.b_sx, self.parent.b_sy
-            pos_hint: {'x':self.parent.b_px_off+4*self.parent.b_sx, 'y':self.parent.b_py_off} 
-            on_press: root.remove_source()
-        Button:
-            id: save_cfg
-            text: 'Save Cfg'
-            size_hint: self.parent.b_sx, self.parent.b_sy
-            pos_hint: {'x':self.parent.b_px_off+5*self.parent.b_sx, 'y':self.parent.b_py_off}    
-        Button:
-            id: import_cfg
-            text: 'Import Cfg'
-            size_hint: self.parent.b_sx, self.parent.b_sy
-            pos_hint: {'x':self.parent.b_px_off+6*self.parent.b_sx, 'y':self.parent.b_py_off} 
-        Button:
-            id: new_popup
-            text: 'New Analysis'
-            size_hint: self.parent.b_sx, self.parent.b_sy
-            pos_hint: {'x':self.parent.b_px_off+7*self.parent.b_sx, 'y':self.parent.b_py_off} 
-            on_press: root.open_popup()  
-        DrawPlot:
-            id:plot_al
-            size_hint:(0.5, 0.65)
-            pos_hint:{'y': 0.15, 'right':1}
+    Analysis:
+<Analysis@BoxLayout> 
+    orientation: 'horizontal'
+    ScrollView:
+
+        size_hint: (1,1)
+        pos_hint:{'x':0.0,'y':0.0}
+        bar_width: 12
+        bar_color: [0, 0, 255, 1]
+        do_scroll_x: False
+        do_scroll_y: True
+        scroll_distance: 20
+        scroll_type: ['bars']
         BoxLayout:
-            size_hint:(0.3, 0.10)
-            pos_hint:{'y': 0.85, 'right':1}
-            GridLayout:
-                id: grid
-                rows:3
-                cols:2
-                Label:
-                    text:'Title:'
-                    font_size:22
-                    size_hint_x:None          
-                    width: 100
-                TextInput
-                    id: title
-                    text: 'example_title'
-                    size_hint_x:None
-                    padding: [0, (self.height-self.line_height)/2]
-                    font_size:22
-                    multiline: False
-                    width:400
-                    on_text_validate: root.title=(self.text)
-                Label:
-                    text:'X Label:'
-                    font_size:22
-                    size_hint_x:None          
-                    width: 100
-                TextInput
-                    id: x_label
-                    text: 'time'
-                    size_hint_x:None
-                    padding: [0, (self.height-self.line_height)/2]
-                    font_size:22
-                    multiline: False
-                    width:400
-                    on_text_validate: root.x_label=(self.text)
-                Label:
-                    text:'Y Label:'
-                    font_size:22
-                    size_hint_x:None          
-                    width: 100
-                TextInput
-                    id: y_label
-                    text: 'variables'
-                    size_hint_x:None
-                    padding: [0, (self.height-self.line_height)/2]
-                    font_size:22
-                    multiline: False
-                    width:400
-                    on_text_validate: root.y_label=(self.text)         
+            size_hint: (0.95,0.95)
+            orientation: 'horizontal'
+            FloatLayout:
+                size_hint: (0.5,1)
+                id:form_layout
+                b_sy: 0.05
+                b_sx: 0.20
+                b_px_off:0.0
+                b_py_off:0.95
+                fontsize: 16
+                Button:
+                    id: exp_btn
+                    text: 'Export'
+                    size_hint: self.parent.b_sx, self.parent.b_sy
+                    pos_hint: {'x':self.parent.b_px_off, 'y': self.parent.b_py_off}
+                    on_press: root.export_graph()
+            #    Button:
+             #       id: save_btn
+              #      text: 'Save'
+               #     size_hint: self.parent.b_sx, self.parent.b_sy
+                #    pos_hint: {'x':self.parent.b_px_off+self.parent.b_sx, 'y': self.parent.b_py_off}
+                Button:
+                    id: add_btn
+                    text: 'Add Src'
+                    size_hint: self.parent.b_sx, self.parent.b_sy
+                    pos_hint: {'x':self.parent.b_px_off+1*self.parent.b_sx, 'y':self.parent.b_py_off} 
+                    on_press: root.add_source()
+                Button:
+                    id: rem_btn
+                    text: 'Rem Src'
+                    size_hint: self.parent.b_sx, self.parent.b_sy
+                    pos_hint: {'x':self.parent.b_px_off+2*self.parent.b_sx, 'y':self.parent.b_py_off} 
+                    on_press: root.remove_source()
+                Button:
+                    id: new_popup
+                    text: 'New Analysis'
+                    size_hint: self.parent.b_sx, self.parent.b_sy
+                    pos_hint: {'x':self.parent.b_px_off+3*self.parent.b_sx, 'y':self.parent.b_py_off} 
+                    on_press: root.open_popup() 
+           #     Button:
+            #        id: save_cfg
+             #       text: 'Save Cfg'
+              #      size_hint: self.parent.b_sx, self.parent.b_sy
+               #     pos_hint: {'x':self.parent.b_px_off+5*self.parent.b_sx, 'y':self.parent.b_py_off}    
+             #   Button:
+              #      id: import_cfg
+               #     text: 'Import Cfg'
+                #    size_hint: self.parent.b_sx, self.parent.b_sy
+                 #   pos_hint: {'x':self.parent.b_px_off+6*self.parent.b_sx, 'y':self.parent.b_py_off} 
+              
+
+
+            FloatLayout:
+                title: title
+                x_label: x_label
+                y_label: y_label
+                id:plot_layout 
+                size_hint:(0.5,1.0)
+                pos_hint:{'right':1,'y':0.0}        
+                DrawPlot:
+                    id:plot_al
+                    size_hint:(1, 0.65)
+                    pos_hint:{'y': 0.10, 'right':1}
+                BoxLayout:
+                    size_hint:(0.6, 0.10)
+                    pos_hint:{'y': 0.80, 'right':1}
+                    GridLayout:
+                        id: grid
+                        rows:3
+                        cols:2
+                        Label:
+                            text:'Title:'
+                            font_size:22
+                            size_hint_x:None          
+                            width: 100
+                        TextInput
+                            id: title
+                            text: 'example_title'
+                            size_hint_x:None
+                            padding: [0, (self.height-self.line_height)/2]
+                            font_size:22
+                            multiline: False
+                            width:400
+                            on_text_validate: root.title=(self.text)
+                        Label:
+                            text:'X Label:'
+                            font_size:22
+                            size_hint_x:None          
+                            width: 100
+                        TextInput
+                            id: x_label
+                            text: 'time'
+                            size_hint_x:None
+                            padding: [0, (self.height-self.line_height)/2]
+                            font_size:22
+                            multiline: False
+                            width:400
+                            on_text_validate: root.x_label=(self.text)
+                        Label:
+                            text:'Y Label:'
+                            font_size:22
+                            size_hint_x:None          
+                            width: 100
+                        TextInput
+                            id: y_label
+                            text: 'variables'
+                            size_hint_x:None
+                            padding: [0, (self.height-self.line_height)/2]
+                            font_size:22
+                            multiline: False
+                            width:400
+                            on_text_validate: root.y_label=(self.text)         
         
 
             
@@ -316,6 +392,7 @@
         size_hint_x: None          
         width: 150
         id:checkbox_show
+        on_press: self.parent.parent.parent.parent.parent.parent.update_graphs()
         canvas.before:
             Color:
                 rgba: 1, 1, 1, 1
@@ -517,7 +594,13 @@
 
 
 <AnalysisPopUp@Popup>
-    Analysis:              
+    auto_dismiss: False
+    Analysis:  
+        size_hint:(0.8,0.8)  
+        Button:
+            size_hint:(0.1,0.1)
+            text: 'Close Analysis'
+            on_release: root.dismiss()        
 <MyFigure@BoxLayout>
 
 

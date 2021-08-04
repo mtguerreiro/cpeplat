@@ -1,19 +1,26 @@
 
+import posixpath
 import kivy
 import csv
 import numpy as np
 import importlib.util
+from list_ports import serial_ports
 #inter_spec = importlib.util.spec_from_file_location("interface.py", "../cpeplat/interface.py")
 #interface = importlib.util.module_from_spec(inter_spec)
 #inter_spec.loader.exec_module(interface)
 #interface.Commands()
 
 from kivy.app import App
+from kivy.uix.spinner import Spinner
 from kivy.uix.popup import Popup
 from kivy.core.window import Window
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.checkbox import CheckBox
+from kivy.uix.button import Button
+from kivy.uix.dropdown import DropDown
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.scrollview import ScrollView
 from kivy.clock import Clock
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.tabbedpanel import TabbedPanelItem
@@ -24,6 +31,7 @@ from kivy.modules import inspector
 import matplotlib.pyplot as plt
 import matplotlib
 import time
+import os
 
 plt.style.use('seaborn-colorblind')
 matplotlib.rcParams['mathtext.fontset'] = 'stix'
@@ -55,37 +63,41 @@ plt.rc('axes', unicode_minus=False)
 
 Window.size = (1000, 800)
 
-def printlog(message):
-    with open('./log.txt','a') as f: f.write(message+"\n")
-class StorageObject():
-    def __init__(self):
-        #create new file when class is started
-        self.filepath
-        self.data=DataObject()
-        pass
-    def write_header(self):
-        pass
-    
-    def append_data_to_file(self):
 
-        #with open(self.filepath, "w") as csvfile:
-         #   pass
-        #cpu1_read_adc_a1(self):
-        #cpu1_read_adc_a1(self):
-        #read data from microcontroller
-        #append data to the right places
-        pass
+
+class Start(TabbedPanelItem):
+    
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        self.port_name=''
+
+    pass
+class CommSelect(Spinner):
+    port_name=ObjectProperty(None)
+
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        self.text="Select Port"
+        self.values =['COM1','COM2']
+        self.port_name=''
+        def show_selected_value(spinner, text):
+            self.set_port_name(text)
+
+            print('The port name is: ', self.get_port_name())
+
+        self.bind(text=show_selected_value)
+        for port in serial_ports():
+            self.values.append(port)
+
+    def set_port_name(self,port):
+        self.port_name=port
+
+    def get_port_name(self):
+        return self.port_name
+        
    
 
-    def save_file_to_storage(self):
-        #get data from file
-        #divide in files(input and output)
-        #generate file name
-        pass
-    
-    
-    
-    
+
     pass
 
 class DataObject():
@@ -97,7 +109,7 @@ class DataObject():
         self.extension=''
         self.row_numbers=0
         self.label_std=['t','$V_{i}$','V_{ib}','$V_o$','$V_{ob}$','I_{l}','I_{lavg)','u']
-        printlog("data object created file :"+self.filepath)
+
     
     def set_new_data(self,new_data):
         new=[]
@@ -170,8 +182,9 @@ class FileHeader(BoxLayout):
         self.add_widget(InputsHeader(),0)
         self.source_path=self.ids.get_file.text
         self.data_obj= DataObject()
+        
 
-
+    
      
     file_path = StringProperty("No file chosen")
     the_popup = ObjectProperty(None)
@@ -180,24 +193,21 @@ class FileHeader(BoxLayout):
         return self.input_rows
                         
     def read_file(self): 
-        printlog(self.data_obj.filepath)
         self.data_obj.updateExtension()
         
-        printlog("extension="+self.data_obj.extension)
+
         if (self.data_obj.extension =='dat'): #add options for when files are different
             try:
                 self.data_obj.read_oscilloscope_file()
-                printlog("number of colums:"+str(self.data_obj.col_number))
                 for i in range(0,self.data_obj.col_number):
                     self.add_input()
                     
                 #self.data1.getDataList())
             except ValueError as ve:
-                printlog(ve)
+                print(ve)
 
         
     def add_input(self):
-        printlog("i have added an input "+str(self.input_num))
         if self.input_num<self.data_obj.getColNum():      
             self.pos_hint['y']=(self.pos_hint['y']-0.030)
             self.size_hint_y=self.size_hint_y+0.030
@@ -220,7 +230,6 @@ class FileHeader(BoxLayout):
     def load(self, selection):
         self.file_path = str(selection[0])  
         self.the_popup.dismiss()
-        printlog("FILEPATH From selection is: "+self.file_path)
         # check for non-empty list i.e. file selected
         if self.file_path:
             self.ids.get_file.text = self.file_path
@@ -230,7 +239,7 @@ class FileHeader(BoxLayout):
         #self.add_input()
         pass
 
-    
+        
 class MyFigure(FigureCanvasKivyAgg):
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
@@ -398,10 +407,15 @@ class Buck(TabbedPanelItem):
             
     def export_graph(self):
         """save graph to png"""
+        
         filepath="./Graphs/"+"Buck_"+self.timestr+".png"
         filename="Buck_"+str(self.timestr)+".png"
         if str(self.timestr):
             self.ids.plot_exp.export_to_png(filename)
+            self.ids.plot_al.export_to_png(filename)
+            source ="./"+filename
+            destination="./Images/Experiment/"+filename
+            os.replace(source,destination)
             print("file saved sucessfully")
         else:
             print("save data first")
@@ -445,9 +459,7 @@ class Buck(TabbedPanelItem):
         return self.actual_data.getDataList(index,scale)  
     
     def read_file(self):
-        printlog(self.actual_data.filepath)
         self.actual_data.updateExtension()  
-        printlog("extension="+self.actual_data.extension)
         if (self.actual_data.extension =='csv'): #add options for when files are different
                 self.actual_data.read_c2000_csv()
     def upload(self):
@@ -473,10 +485,15 @@ class Limits(BoxLayout):
         return float(self.ids[id_child].text)
     def set_text(self, id_child,text_in):
         self.ids[id_child].text = str(text_in)
+    
+    def on_active(self, instance,value):
+        if value==True:
+            print("aaaa")
+            self.parent.parent.parent.parent.parent.parent.update_values()
+    pass
 
 
-                
-class Analysis(TabbedPanelItem):
+class Analysis(BoxLayout):
     title=ObjectProperty(None)
     x_label=ObjectProperty(None)
     y_label=ObjectProperty(None)
@@ -524,11 +541,10 @@ class Analysis(TabbedPanelItem):
         self.the_popup = AnalysisPopup()
         self.the_popup.open()
                 
-    def update_graphs(self):   
+    def update_graphs(self):
         try:
             if not (self.ini):
                 self.ids.form_layout.remove_widget(self.new_fig)
-                printlog("removendo figura")
                 plt.cla()
         except:
             pass
@@ -547,6 +563,22 @@ class Analysis(TabbedPanelItem):
         self.ids.plot_al.draw_my_plot()
         self.ini=False
     
+    def export_graph(self):
+        """save graph to png"""
+        timestr = time.strftime("%Y%m%d-%H%M%S")
+        #filepath="./Graphs/"+"Buck_"+self.timestr+".png"
+        filename="Analysis"+str(timestr)+".png"
+        try:
+            self.ids.plot_al.export_to_png(filename)
+            source ="./"+filename
+            destination="./Images/Analysis/"+filename
+            os.replace(source,destination)
+            print("file saved sucessfully")
+
+        except Exception as ve:
+            print(ve)
+
+        pass   
     pass
 
     
@@ -600,7 +632,8 @@ class DrawPlot(BoxLayout):
                                 
             for index,line in enumerate(self.y_plot):
                 ax.plot(line)  
-                ax.grid()
+                
+            ax.grid()
             ax.legend(self.legends,loc='upper left', ncol=2)        
             canvas =  FigureCanvas(figure=fig) 
             
