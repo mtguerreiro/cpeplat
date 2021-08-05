@@ -483,6 +483,9 @@ class Interface:
         else:
             data = [[data[2*i], data[2*i+1]] for i in range(n)]
             data = serialp.conversions.u8_to_u16(data, msb=False)
+            if type(data) is int:
+                data = [data]
+            
         
         return data
 
@@ -564,7 +567,7 @@ class Interface:
             return -3
 
         if size_rcvd != size:
-            print('{:}|\tBuffer {:}: error setting size. Size sent: {:}. Size received: {:}.'.format(funcname, adc, size, size_rcvd))
+            print('{:}|\tBuffer {:}: error setting size. Size sent: {:}. Size received: {:}.'.format(funcname, buffer, size, size_rcvd))
             return -4
         
         print('{:}|\tBuffer {:}: buffer set. Size: {:}'.format(funcname, buffer_rcvd, size_rcvd))
@@ -632,8 +635,10 @@ class Interface:
             data = []
         else:
             data = [[data[2*i], data[2*i+1]] for i in range(n)]
-            data = serialp.conversions.u8_to_u16(data, msb=False)
-        
+            data = serialp.conversions.u8_to_u16(data, msb=False) 
+            if type(data) is int:
+                data = [data]
+                
         return data
 
 
@@ -1065,7 +1070,7 @@ class Interface:
             return -1
 
         if data[0] != 0:
-            print('{:}|\tADC {:} set trip {:}: command failed. Error: {:}.'.format(funcname, adc, trip, ref, data[0]))
+            print('{:}|\tADC {:} set trip {:}: command failed. Error: {:}.'.format(funcname, adc, trip, data[0]))
             return -2
 
         status = serialp.conversions.u8_to_u16(data[1:5], msb=True)

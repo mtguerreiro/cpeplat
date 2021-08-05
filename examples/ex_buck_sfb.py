@@ -1,6 +1,7 @@
 import cpeplat as cpe
 import matplotlib.pyplot as plt
 import numpy as np
+import cpeplat.result as res
 
 import time
 

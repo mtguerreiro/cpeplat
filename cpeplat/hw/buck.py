@@ -20,24 +20,31 @@ class BuckHWM:
         self.gpio_fault_enable = 10
         
         self.vref_limit = 30
+        self.adc_Resolution = 4095
         self.sample_time = 5e-06
+        
+        self.il_sensor_sensitiviy = 50e-03
+        self.il_sensor_offset = -2.5
+        self.il_resistor_gain = 3.9/5.9
+        self.il_adc_voltage_gain = 3/4095
+        self.u_pwm_gain = 0x03E7>>1
         
         
         self.vin_buck_offset = 0
         self.vin_offset = 0
         self.vout_offset = 0
         self.vout_buck_offset = 0 
-        self.il_offset = -2.5/50e-03
-        self.il_avg_offset = -2.5/50e-03
+        self.il_offset = self.il_sensor_offset/self.il_sensor_sensitiviy
+        self.il_avg_offset = self.il_sensor_offset/self.il_sensor_sensitiviy
         self.u_offset = 0
         
         self.vin_buck_gain = self.vref_limit/4095
         self.vin_gain = self.vref_limit/4095
         self.vout_gain = self.vref_limit/4095
         self.vout_buck_gain = self.vref_limit/4095 
-        self.il_gain = 1/50e-03
-        self.il_avg_gain = 1/50e-03
-        self.u_gain = 0
+        self.il_gain = self.il_adc_voltage_gain/(self.il_resistor_gain*self.il_sensor_sensitiviy)
+        self.il_avg_gain = self.il_adc_voltage_gain/(self.il_resistor_gain*self.il_sensor_sensitiviy)
+        self.u_gain = 1/self.u_pwm_gain
 
 
 class BuckHWDefaultSettings:
@@ -58,14 +65,14 @@ class BuckHWDefaultSettings:
         self.u_buffer_size = 2000
 
         # Tripping
-        self.vin_trip = 3000
-        self.vin_buck_trip = 3000
+        self.vin_trip = 22
+        self.vin_buck_trip = 22
 
-        self.vout_trip = 3000
-        self.vout_buck_trip = 3000
+        self.vout_trip = 22
+        self.vout_buck_trip = 22
 
-        self.il_trip = 3200
-        self.il_avg_trip = 3200
+        self.il_trip = 20
+        self.il_avg_trip = 10
 
         # Blinking rate
         self.cpu1_blink = 2000
@@ -179,14 +186,15 @@ class Buck:
 
         # Sets and enable tripping for all ADCs
         status = 0
-        status = plat.cpu2_trip_set(hwm.adc_vin, hw_default.vin_trip)
-        status |= plat.cpu2_trip_set(hwm.adc_vin_buck, hw_default.vin_buck_trip)
+        status = self._set_trip_vin(hw_default.vin_trip)
+
+        status |= self._set_trip_vin_buck(hw_default.vin_buck_trip)
         
-        status |= plat.cpu2_trip_set(hwm.adc_vout, hw_default.vout_trip)
-        status |= plat.cpu2_trip_set(hwm.adc_vout_buck, hw_default.vout_buck_trip)
+        status |=  self._set_trip_vout(hw_default.vout_trip)
+        status |=  self._set_trip_vout_buck(hw_default.vout_buck_trip)
         
-        status |= plat.cpu2_trip_set(hwm.adc_il, hw_default.il_trip)
-        status |= plat.cpu2_trip_set(hwm.adc_il_avg, hw_default.il_avg_trip)
+        status |= self._set_trip_il(hw_default.il_trip)
+        status |= self._set_trip_il_avg(hw_default.il_avg_trip)
 
         status |= plat.cpu2_trip_enable(hwm.adc_vin)
         status |= plat.cpu2_trip_enable(hwm.adc_vin_buck)
@@ -635,7 +643,8 @@ class Buck:
             return -1
 
         data = np.array(data)
-
+        
+        data = data * self.hwm.u_gain + self.hwm.u_offset
         return data
 
 
@@ -708,6 +717,9 @@ class Buck:
 
         """
         adc = self.hwm.adc_vin
+        
+        #Trip into ADC-Value from Voltage
+        trip = round(trip * self.hwm.adc_Resolution / self.hwm.vref_limit)
 
         status = self.plat.cpu2_trip_set(adc, trip)
 
@@ -757,7 +769,10 @@ class Buck:
 
         """
         adc = self.hwm.adc_vin_buck
-
+        
+        #Trip into ADC-Value from Voltage
+        trip = round(trip * self.hwm.adc_Resolution / self.hwm.vref_limit)
+        
         status = self.plat.cpu2_trip_set(adc, trip)
 
         if status != 0:
@@ -805,8 +820,10 @@ class Buck:
             Returns 0 if the trip was set. Otherwise, returns -1.
 
         """
-        adc = self.hwm.adc_vout
-
+        adc = self.hwm.adc_vout       
+        #Trip into ADC-Value from Voltage
+        trip = round(trip * self.hwm.adc_Resolution / self.hwm.vref_limit)
+        
         status = self.plat.cpu2_trip_set(adc, trip)
 
         if status != 0:
@@ -855,7 +872,9 @@ class Buck:
 
         """
         adc = self.hwm.adc_vout_buck
-
+        #Trip into ADC-Value from Voltage
+        trip = round(trip * self.hwm.adc_Resolution / self.hwm.vref_limit)
+        
         status = self.plat.cpu2_trip_set(adc, trip)
 
         if status != 0:
@@ -903,7 +922,8 @@ class Buck:
             Returns 0 if the trip was set. Otherwise, returns -1.
 
         """
-        adc = self.hwm.adc_il
+        adc = self.hwm.adc_il      
+        trip = round((trip-self.hwm.il_sensor_offset/self.hwm.il_sensor_sensitiviy)/(self.hwm.il_adc_voltage_gain/(self.hwm.il_resistor_gain*self.hwm.il_sensor_sensitiviy)))
 
         status = self.plat.cpu2_trip_set(adc, trip)
 
@@ -953,7 +973,8 @@ class Buck:
 
         """
         adc = self.hwm.adc_il_avg
-
+        trip = round((trip-self.hwm.il_sensor_offset/self.hwm.il_sensor_sensitiviy)/(self.hwm.il_adc_voltage_gain/(self.hwm.il_resistor_gain*self.hwm.il_sensor_sensitiviy)))
+        
         status = self.plat.cpu2_trip_set(adc, trip)
 
         if status != 0:
