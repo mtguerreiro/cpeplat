@@ -187,12 +187,9 @@ class Buck:
         # Sets and enable tripping for all ADCs
         status = 0
         status = self._set_trip_vin(hw_default.vin_trip)
-
-        status |= self._set_trip_vin_buck(hw_default.vin_buck_trip)
-        
+        status |= self._set_trip_vin_buck(hw_default.vin_buck_trip)     
         status |=  self._set_trip_vout(hw_default.vout_trip)
-        status |=  self._set_trip_vout_buck(hw_default.vout_buck_trip)
-        
+        status |=  self._set_trip_vout_buck(hw_default.vout_buck_trip)      
         status |= self._set_trip_il(hw_default.il_trip)
         status |= self._set_trip_il_avg(hw_default.il_avg_trip)
 
