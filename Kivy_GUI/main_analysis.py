@@ -1,6 +1,5 @@
 
 from kivy.app import App
-import exp_widgets
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 
@@ -335,24 +334,24 @@ class Analysis(BoxLayout):
                     check_status.append(input_line.ids.checkbox_show.active)
 
                 config_list.append([path,labels,scales,check_status])
-        print(config_list)
+        #print(config_list)
         with open("config.json", "w") as outfile:
              json.dump(config_list, outfile)
 
     def load_config(self):
         with open("config.json", "r") as infile:
             config_list=json.load(infile)
-        print(config_list)
+        #print(config_list)
 
         """add new sources and lines"""
         for s_ind, line in enumerate(config_list, start=0):
             if s_ind >=len(self.source_forms):
-                print("adding source: ",s_ind)
+             #   print("adding source: ",s_ind)
                 self.add_source()
             self.source_forms[s_ind].ids.get_file.text=line[0]
             self.source_forms[s_ind].load_text_input()
             for l_ind, in_row in enumerate(self.source_forms[s_ind].input_rows):
-                print(l_ind)
+              #  print(l_ind)
                 try:
                     in_row.ids.label_input.text=line[1][l_ind]
                     in_row.ids.scale_input.text=line[2][l_ind]
@@ -415,7 +414,7 @@ class Analysis(BoxLayout):
     def export_graph(self):
         """save graph to png"""
         timestr = time.strftime("%Y%m%d-%H%M%S")
-        #filepath="./Graphs/"+"Buck_"+self.timestr+".png"
+
         filename="Analysis"+str(timestr)+".png"
         try:
             self.ids.plot_al.export_to_png(filename)

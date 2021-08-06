@@ -83,7 +83,7 @@ class CommSelect(Spinner):
         def show_selected_value(spinner, text):
             self.set_port_name(text)
 
-            print('The port name is: ', self.get_port_name())
+         #   print('The port name is: ', self.get_port_name())
 
         self.bind(text=show_selected_value)
         for port in serial_ports():
@@ -305,9 +305,9 @@ class Buck(TabbedPanelItem):
         self.i_l_lim+=1#
         
         """read data and send it to microcontroler when upload button clicked"""
-        print(self.ids["limits_bar"].get_text("v_in_lim"))
-        print(self.ids["limits_bar"].get_text("v_out_lim"))
-        print(self.ids["limits_bar"].get_text("i_l_lim"))
+       # print(self.ids["limits_bar"].get_text("v_in_lim"))
+        #print(self.ids["limits_bar"].get_text("v_out_lim"))
+       # print(self.ids["limits_bar"].get_text("i_l_lim"))
         
         
         """just for testing"""
@@ -365,7 +365,7 @@ class Buck(TabbedPanelItem):
               
         """create files"""
         self.timestr = time.strftime("%Y%m%d-%H%M%S")
-        print (self.timestr)
+       # print (self.timestr)
         self.filename_voltages_in="./Store/voltages_in"+self.timestr+".csv"
         self.filename_voltages_out="./Store/voltages_out"+self.timestr+".csv"
         self.filename_currents="./Store/currents"+self.timestr+".csv"
@@ -483,7 +483,6 @@ class Limits(BoxLayout):
     
     def on_active(self, instance,value):
         if value==True:
-            print("aaaa")
             self.parent.parent.parent.parent.parent.parent.update_values()
     pass
 
@@ -527,24 +526,24 @@ class Analysis(BoxLayout):
                     check_status.append(input_line.ids.checkbox_show.active)
 
                 config_list.append([path,labels,scales,check_status])
-        print(config_list)
+      #  print(config_list)
         with open("config.json", "w") as outfile:
              json.dump(config_list, outfile)
 
     def load_config(self):
         with open("config.json", "r") as infile:
             config_list=json.load(infile)
-        print(config_list)
+       # print(config_list)
 
         """add new sources and lines"""
         for s_ind, line in enumerate(config_list, start=0):
             if s_ind >=len(self.source_forms):
-                print("adding source: ",s_ind)
+               # print("adding source: ",s_ind)
                 self.add_source()
             self.source_forms[s_ind].ids.get_file.text=line[0]
             self.source_forms[s_ind].load_text_input()
             for l_ind, in_row in enumerate(self.source_forms[s_ind].input_rows):
-                print(l_ind)
+            #    print(l_ind)
                 try:
                     in_row.ids.label_input.text=line[1][l_ind]
                     in_row.ids.scale_input.text=line[2][l_ind]

@@ -87,7 +87,7 @@
         scroll_distance: 20
         scroll_type: ['bars']
         BoxLayout:
-            size_hint: (0.95,0.95)
+            size_hint: (1.0,0.95)
             orientation: 'horizontal'
             FloatLayout:
                 size_hint: (0.5,1)
@@ -312,12 +312,7 @@
             size_hint_x:None
             width:100
             on_press: root.open_popup()
-        Button:
-            text: 'Del'
-            font_size: 16
-            size_hint_x:None
-            width:100
-            on_press: root.remove()
+
 
     
              
