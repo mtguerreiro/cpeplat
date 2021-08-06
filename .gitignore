@@ -1,3 +1,12 @@
 cpeplat.egg-info
 cpeplat/__pycache__
 .DS_Store
+cpeplat/hw/__pycache__
+examples/data
+./Kivy_GUI/__pycache__
+./Kivy_GUI/Data_Oscill
+./Kivy_GUI/Store
+./Kivy_GUI/Images
+./Kivy_GUI/kivy_venv
+./Kivy_GUI/log.text
+./Kivy_GUI/test.dat
