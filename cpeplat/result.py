@@ -10,6 +10,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import cpeplat.result as res
+from itertools import zip_longest
+import csv
 
 ##########-------------- Basic Setting Functions  ----------------############
 
@@ -26,11 +28,25 @@ def _setting_labels(type_of):
         plt.xlabel("Time / ms", fontsize=12)
         plt.ylabel("u (DutyCycle)", fontsize=12)        
         
-def _setting_legend(leg):
-        plt.gca().legend(leg, fontsize=12)
+def _setting_legend(leg, counter):
+    i = 0
+    legend = []
+    
+    if leg is None:
+        for i in range(0,counter):
+            legend.append('Controller_' + str(i+1))
+        leg = legend   
+    
+    if len(leg) < counter:
+        print('Warning: More data sets than given legend-set. Legend was extended.\nCheck Function input!')
+        for i in range(len(leg),counter):
+            leg.append('Controller_' + str(len(leg)+1))
+        
+        
+    plt.gca().legend(leg, fontsize=12)
         
 def _setting_title(title):
-    plt.title(title, fontsize=12)
+    plt.title(title, fontsize=14)
 
 
 
@@ -115,7 +131,7 @@ def plot_u(data):
 
 ##########-------------- Comparision Plot Functions  -------------############
 
-def plot_compare_vin(data, leg = ['Controler_1','Controler_2']):
+def plot_compare_vin(data, leg = None):
     """ Compares Data from experiments and plots it in one Figure
     
     Expect: numpy Matrix
@@ -123,16 +139,17 @@ def plot_compare_vin(data, leg = ['Controler_1','Controler_2']):
     """
     
     plt.figure(figsize=(9, 6))
-    
+    counter_data = 0
     for i in data:
         plt.plot(i[0],i[1])
+        counter_data = counter_data + 1
         
     res._setting_labels('Voltage')
     res._setting_title('Input Voltage')
-    plt.gca().legend(leg)
+    res._setting_legend(leg, counter_data)
     plt.grid()
 
-def plot_compare_vin_buck(data, leg = ['Controler_1','Controler_2']):
+def plot_compare_vin_buck(data, leg = None):
     """ Compares Data from experiments and plots it in one Figure
     
     Expect: numpy Matrix
@@ -140,16 +157,17 @@ def plot_compare_vin_buck(data, leg = ['Controler_1','Controler_2']):
     """
     
     plt.figure(figsize=(9, 6))
-    
+    counter_data = 0
     for i in data:
         plt.plot(i[0],i[2])
+        counter_data = counter_data + 1
         
     res._setting_labels('Voltage')
     res._setting_title('Input Voltage Buck')
-    plt.gca().legend(leg)
+    res._setting_legend(leg, counter_data)
     plt.grid()
     
-def plot_compare_vout(data, leg = ['Controler_1','Controler_2']):
+def plot_compare_vout(data, leg = None):
     """ Compares Data from experiments and plots it in one Figure
     
     Expect: numpy Matrix
@@ -157,17 +175,18 @@ def plot_compare_vout(data, leg = ['Controler_1','Controler_2']):
     """
     
     plt.figure(figsize=(9, 6))
-    
+    counter_data = 0
     for i in data:
         plt.plot(i[0],i[3])
+        counter_data = counter_data + 1
         
     res._setting_labels('Voltage')
     res._setting_title('Output Voltage')
-    plt.gca().legend(leg)
+    res._setting_legend(leg, counter_data)
     plt.grid()
 
     
-def plot_compare_vout_buck(data, leg = ['Controler_1','Controler_2']):
+def plot_compare_vout_buck(data, leg = None):
     """ Compares Data from experiments and plots it in one Figure
     
     Expect: numpy Matrix
@@ -175,15 +194,17 @@ def plot_compare_vout_buck(data, leg = ['Controler_1','Controler_2']):
     """
     
     plt.figure(figsize=(9, 6))
-    
+    counter_data = 0
     for i in data:
         plt.plot(i[0],i[4])
+        counter_data = counter_data + 1
         
     res._setting_labels('Voltage')
     res._setting_title('Output Voltage Buck')
+    res._setting_legend(leg, counter_data)    
     plt.grid()
     
-def plot_compare_il(data, leg = ['Controler_1','Controler_2']):
+def plot_compare_il(data, leg = None):
     """ Compares Data from experiments and plots it in one Figure.
     
     Expect: numpy Matrix
@@ -191,16 +212,17 @@ def plot_compare_il(data, leg = ['Controler_1','Controler_2']):
     """
     
     plt.figure(figsize=(9, 6))
-    
+    counter_data = 0
     for i in data:
         plt.plot(i[0],i[5])
+        counter_data = counter_data + 1
         
     res._setting_labels('Current')
     res._setting_title('Output Current')
-    plt.gca().legend(leg)
+    res._setting_legend(leg, counter_data)
     plt.grid()
     
-def plot_compare_il_avg(data, leg = ['Controler_1','Controler_2']):
+def plot_compare_il_avg(data, leg = None):
     """ Compares Data from experiments and plots it in one Figure
     
     Expect: numpy Matrix
@@ -208,32 +230,40 @@ def plot_compare_il_avg(data, leg = ['Controler_1','Controler_2']):
     """
     
     plt.figure(figsize=(9, 6))
-    
+    counter_data = 0
     for i in data:
         plt.plot(i[0],i[6])
+        counter_data = counter_data + 1
         
     res._setting_labels('Current')
     res._setting_title('Output Current Average')
-    plt.gca().legend(leg)
+    res._setting_legend(leg, counter_data)
     plt.grid()
     
-def plot_compare_u(data, leg = ['Controler_1','Controler_2']):
+def plot_compare_u(data, leg = None):
     """ Compares Data from experiments and plots it in one Figure
     
-    Expect: numpy Matrix
+    Important: always give data in list! also when only 1 data set is used!
+    Example: plot_compare([data1], ['pid'])
     Example: plot_compare([data1, data2],['pid_1', 'pid_2'])
+    Expect: numpy Matrix
     """
-    
+    if len(data) == 1:
+        print('yes')
+        
     plt.figure(figsize=(9, 6))
-    
+    counter_data = 0
     for i in data:
         plt.plot(i[0],i[7])
+        counter_data = counter_data + 1
         
+    
     res._setting_labels('ControlSignal')
-    plt.gca().legend(leg)
+    res._setting_title('Control Signal (DutyCycle')
+    res._setting_legend(leg, counter_data)
     plt.grid()   
     
-def plot_compare_all(data, leg = ['Controler_1','Controler_2']):
+def plot_compare_all(data, leg = None, title = None):
     """ Compares Data from experiments and plots it in one Figure
     
     Expect: numpy Matrix
@@ -241,29 +271,63 @@ def plot_compare_all(data, leg = ['Controler_1','Controler_2']):
     """
     
     plt.figure(figsize=(16, 9))
+    plt.suptitle(title, fontsize = 16,)
     plt.subplot(1, 3, 1)
+    
+    counter_data = 0
     for i in data:
         plt.plot(i[0],i[3])
+        counter_data = counter_data + 1
         
     res._setting_labels('Voltage')
     res._setting_title('Output Voltage')
-    plt.gca().legend(leg)
+    res._setting_legend(leg, counter_data)
     plt.grid()   
     
     plt.subplot(1, 3, 2)
+    counter_data = 0
     for i in data:
         plt.plot(i[0],i[6])
+        counter_data = counter_data + 1
         
-    res._setting_labels('Current')
+    res._setting_labels('CurrSent')
     res._setting_title('Average Current')
-    plt.gca().legend(leg)
+    res._setting_legend(leg, counter_data)
     plt.grid() 
     
     plt.subplot(1, 3, 3)
+    counter_data = 0
     for i in data:
         plt.plot(i[0],i[7])
+        counter_data = counter_data + 1
         
     res._setting_labels('ControlSignal')
     res._setting_title('Control Signal u')
-    plt.gca().legend(leg)
+    res._setting_legend(leg, counter_data)
     plt.grid()
+    
+    
+def save_variable_csv(data_to_save, path = None, file_name = None):
+       
+    if path is None:
+        path = 'C:\SynBuckConverter-PSpiceFiles'
+    if file_name is None:
+        file_name = '\data_oszi_pid_p1_8v_Vin.csv'
+        
+    if type(path) is not str or type(file_name) is not str:
+        raise TypeError("Path and name needs to be strings!")
+        
+    # Prints values in columns instead of row
+    data_to_save = zip_longest(*data_to_save, fillvalue = '')
+    
+     #Notes:
+    # newline = '' --> no free column duriing    
+    # delimter = ',' --> Gibt Treenung der Variablen in der Liste an        
+    with open((path + file_name), 'w', encoding = 'utf8', newline ='') as f:
+        writer = csv.writer(f, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        
+        for data in data_to_save:
+            writer.writerow(data)
+    
+    # Zeigt File an indem Datei Gespeichert wurde
+    print(path + file_name)

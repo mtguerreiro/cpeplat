@@ -1,6 +1,7 @@
 import cpeplat as cpe
 import numpy as np
 import time
+import cpeplat.result as res
 
 class BuckHWM:
     """A class to hold hardware mapping data for the buck platform.
@@ -45,6 +46,20 @@ class BuckHWM:
         self.il_gain = self.il_adc_voltage_gain/(self.il_resistor_gain*self.il_sensor_sensitiviy)
         self.il_avg_gain = self.il_adc_voltage_gain/(self.il_resistor_gain*self.il_sensor_sensitiviy)
         self.u_gain = 1/self.u_pwm_gain
+        
+class BuckControllerTypes:
+    """ A class which shows all avaiable Control Functions and their shortcuts
+    for calling them. Also defines different list of controllers which can be used
+    for a specific experiment function
+    """
+    
+    def __init__(self):
+        #All avaiable Controller Types
+        self.all = ['ol','matlab','pid','ol','sfb']
+        
+        #All avaiable Controller for function: experiemnt_tuning()
+        self.tuning = ['ol','pid','sfb']
+        
 
 
 class BuckHWDefaultSettings:
@@ -71,8 +86,8 @@ class BuckHWDefaultSettings:
         self.vout_trip = 22
         self.vout_buck_trip = 22
 
-        self.il_trip = 20
-        self.il_avg_trip = 10
+        self.il_trip = 25
+        self.il_avg_trip = 25
 
         # Blinking rate
         self.cpu1_blink = 2000
@@ -171,6 +186,9 @@ class Buck:
 
         hw_default = BuckHWDefaultSettings()
         self.hw_default = hw_default
+        
+        control_types = BuckControllerTypes()
+        self.control_types =control_types
 
         # Initializes ADC/CPU2 buffers
         plat.cpu1_adc_buffer_set(hwm.adc_vin, hw_default.vin_buffer_size)
@@ -693,7 +711,12 @@ class Buck:
             if type(u) is not int: break
             print('Could not read u buffer... trying again.')
 
-        return [vin, vin_buck, vout, vout_buck, il, il_avg, u]
+        #Adding Time Signal, in MilliSeconds
+        SampleList = list(range(0,len(vout)));
+        t = [element *self.hwm.sample_time*1000 for element in SampleList];
+        t = np.array(t) # t in mili seconds
+        
+        return [t, vin, vin_buck, vout, vout_buck, il, il_avg, u]
 
 
     def _set_trip_vin(self, trip):
@@ -1127,3 +1150,114 @@ class Buck:
 
         return data
             
+    def experiment_tuning(self, ref, control, params, obs=None, obs_params=None):
+            """Runs several experiment in a row with a set Control and different 
+            Parameter-Sets which were given in a list.
+    
+            The experiment consists of setting control mode, closing the
+            input/output relays, enabling the PWM for a certain amount of time,
+            disabling the PWM and opening the input/output relays.
+    
+            Data from all the experiments is then returned.
+            So that the different Parameter-Sets can be compared.
+    
+            Returns
+            -------
+            data or status : list or int
+                If no errors occurred during the experiment, data from the ADCs
+                is returned. Otherwise, returns -1.
+            
+            Raises
+            ------
+            NameError:
+                If `mode` is not of Type ('pid', 'ol' or 'sfb'.)
+    
+            TypeError
+                If `params` is not of `dict` type.
+                
+            """
+            
+            #Error Checking: Not supported Control                
+            if control not in self.control_types.tuning:
+                if control == 'matlab':
+                    raise NameError('Tuning of External Matlab Control currently not supported!')
+                else:
+                    raise NameError('Unknwon Control Mode!')
+                    
+            #Starting Tuning Experiment      
+            data = []
+            leg = []
+            for para_set in params:
+                data.append(self.experiment(ref,control,para_set, obs, obs_params))
+                
+            if control == 'ol':
+                title = 'Compare Different OpenLoop Tunings'
+                for para_set in params:
+                    leg.append('u = ' + str(round(para_set['u'],3)))
+            elif control == 'pid':
+                title = 'Compare Different PID Tunings'
+                counter = 0
+                for para_set in params:
+                    leg.append('PID '+ str(counter+1))
+                    counter = counter + 1
+            elif control == 'sfb':
+                title = 'Compare Different State Feedback Controller'
+                counter = 0
+                for para_set in params:
+                    leg.append('SFB '+ str(counter+1))
+                    counter = counter + 1
+                        
+                        # Plotting Plot of Different Tunings
+            res.plot_compare_all(data, leg = leg, title = title)
+                                           
+            return data
+
+
+    def experiment_compare(self, ref, controllers, params, leg = None, title = None, obs=None, obs_params=None):
+            """Runs several experiment in a row with different Controllers
+            and compares the result
+    
+            The experiment consists of setting control mode, closing the
+            input/output relays, enabling the PWM for a certain amount of time,
+            disabling the PWM and opening the input/output relays.
+    
+            Data from all the experiments is then returned.
+            So that the different Parameter-Sets can be compared.
+    
+            Returns
+            -------
+            data or status : list or int
+                If no errors occurred during the experiment, data from the ADCs
+                is returned. Otherwise, returns -1.
+            
+            Raises
+            ------
+            NameError:
+                If `mode` is not of Type ('pid', 'ol' or 'sfb'.)
+    
+            TypeError
+                If `params` is not of `dict` type.
+                
+            """
+            # Checking for valid Control Type
+            control_counter = 0
+            data = []
+            
+            for control in controllers:
+            #Error Checking: Not supported Control                
+                if control not in self.control_types.all:
+                    if control == 'matlab':
+                        raise NameError('Unknwon Control Mode!')
+                    
+            #Starting Tuning Experiment      
+                data.append(self.experiment(ref, control, params[control_counter], obs, obs_params))
+                control_counter = control_counter + 1
+            
+            if leg is None:
+                leg = controllers
+
+                       
+            # Plotting Plot of Different Tunings
+            res.plot_compare_all(data, leg = leg, title = title)
+                                           
+            return data            
