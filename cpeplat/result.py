@@ -308,12 +308,22 @@ def plot_compare_all(data, leg = None, title = None):
     
     
 def save_variable_csv(data_to_save, path = None, file_name = None):
-       
+    """ Saves Data given as an input in a csv file.
+    
+    Expect: List, Numpyarray
+    file name: test.csv (Importand needs .csv)
+    Example: save_variable_csv(data_to_save, path =, test.csv = None)
+    """       
     if path is None:
+        # use this for setting a fixed path
         path = 'C:\SynBuckConverter-PSpiceFiles'
     if file_name is None:
-        file_name = '\data_oszi_pid_p1_8v_Vin.csv'
+        # use this for setting or change a fixed file name
+        file_name = 'test.csv'
         
+    if file_name[-4:] != '.csv':
+        raise NameError('File_name needs to end with .csv')
+           
     if type(path) is not str or type(file_name) is not str:
         raise TypeError("Path and name needs to be strings!")
         
@@ -323,7 +333,7 @@ def save_variable_csv(data_to_save, path = None, file_name = None):
      #Notes:
     # newline = '' --> no free column duriing    
     # delimter = ',' --> Gibt Treenung der Variablen in der Liste an        
-    with open((path + file_name), 'w', encoding = 'utf8', newline ='') as f:
+    with open((path + '\\' + file_name), 'w', encoding = 'utf8', newline ='') as f:
         writer = csv.writer(f, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         
         for data in data_to_save:
