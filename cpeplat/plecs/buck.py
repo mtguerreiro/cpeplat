@@ -24,7 +24,7 @@ class BuckParams:
         params['R_in'] = 30e-3
 
         params['C_in'] = 2 * 560e-6
-        params['R_in'] = 60e-3 / 2
+        params['R_Cin'] = 60e-3 / 2
 
         # Switching
         params['R_ds'] = 15e-3
@@ -32,7 +32,7 @@ class BuckParams:
 
         # Buck
         params['L'] = 47e-6
-        params['Rl'] = 15e-3
+        params['RL'] = 15e-3
 
         params['C_out'] = 560e-6
         params['R_Cout'] = 60e-3
