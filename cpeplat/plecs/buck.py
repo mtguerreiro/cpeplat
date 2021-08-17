@@ -44,6 +44,13 @@ class BuckParams:
         params['t_r_dist_off'] = 8e-3
         
         params['V_ref'] = 8
+
+        # Quantization (ADC and PWM)
+        params['adc_res'] = 12
+        params['pwm_res'] = 11
+
+        params['q_adc'] = V_in / (2**adc_res - 1)
+        params['q_pwm'] = 1 / (2**pwm_res - 1)
         
         # Goes through each item defined in model_params. If this parameter
         # is already defined in the params variable, then the params variable
