@@ -10,6 +10,10 @@ class BuckParams:
     This is a list containing the minimal set of parameters required to run
     the simulation.
 
+    When changing parameters, care must be taken to check whether other
+    parameters should also be affected. For instance, changing the input
+    voltage may also require to change the ADC quantization interval.
+
     """
     def __init__(self, model_params={}):
         params = {}
@@ -49,8 +53,8 @@ class BuckParams:
         params['adc_res'] = 12
         params['pwm_res'] = 11
 
-        params['q_adc'] = V_in / (2**adc_res - 1)
-        params['q_pwm'] = 1 / (2**pwm_res - 1)
+        params['q_adc'] = params['V_in'] / (2**params['adc_res'] - 1)
+        params['q_pwm'] = 1 / (2**params['pwm_res'] - 1)
         
         # Goes through each item defined in model_params. If this parameter
         # is already defined in the params variable, then the params variable
@@ -103,16 +107,16 @@ class Buck:
         if file is None and self.sim_file is None:
             raise ValueError('No simulation file was defined.')
 
-        if path is None and self.path is None:
+        if path is None and self.sim_path is None:
             raise ValueError('No simulation path was defined.')
         
         if file is None:
             file = self.sim_file
 
         if path is None:
-            path = self.path
+            path = self.sim_path
             
-        if model_params is {}:
+        if model_params == {}:
             model_params = self.model.params
 
         # Opens PLECS connection
