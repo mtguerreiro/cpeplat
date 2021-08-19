@@ -17,28 +17,10 @@ ref = 8
 buck = cpe.hw.buck.Buck(COM, baud, to)
 
 
-# --- Sets up data for experiments ---
-# Open-loop data
-#ol_params = {'u': 125/499}
-ol_params = {'u': 600/2000}
-
-# PID data
-pid_params_1 = {'a1':-1.6327, 'a2':0.6327, 'b0':1.5703, 'b1':-3.1017, 'b2':1.5321}
-pid_params_2 = {'a1':-1.77777, 'a2':0.7777, 'b0':5.756944444444445, 'b1':-11.19999938888889, 'b2':5.445833333333333}
-
+# --- Controller data ---
 # SFB data
-#sfb_params = {'k_il':0.09437662/2, 'k_vc':0.60625809/2, 'k_z':6020.401591307597/2, 'dt':1/50e3}
 sfb_params_1 = {'k_il':0.07755398, 'k_vc':0.1141189, 'k_z':541.1014463940613, 'dt':1/50e3}
 sfb_params_2 = {'k_il':0.09112457, 'k_vc':0.20602978, 'k_z':935.0232993623816, 'dt':1/50e3}
-
-#u = np.array(buck.plat.cpu2_buffer_read(0))
-#niters = np.array(buck.plat.cpu2_buffer_read(1))
-
-# --- Runs experiments with all parameters ---
-
-##data = []
-##for ctl in controllers:
-##    data.append(buck.experiment(ref, ctl[0], ctl[1]))
 
 # --- Observer ---
 def cimini(R, L, C, RL, Rds, ts, rho, alpha, K):
@@ -56,6 +38,13 @@ def cimini(R, L, C, RL, Rds, ts, rho, alpha, K):
     return {'a11':a11, 'a12':a12, 'b11':b11, 'a21':a21, 'a22':a22, 'a23':a23, 'a24':a24, 'a25':a25, 'a26':a26}
 
 # Observer parameters
-observer = 'cimini'
-obs_params = cimini(1.1, 47e-6, 470e-6, 25e-3, 25e-3, 1/50e3, 0.78, 0.5, 10)
-#obs_params = cimini(1.1, 60e-6, 470e-6, 25e-3, 25e-3, 1/50e3, 0.78, 0.5, 10)
+cimini_params = cimini(1.1, 47e-6, 470e-6, 25e-3, 25e-3, 1/50e3, 0.78, 0.5, 10)
+
+# Luenberger params
+#luenberger_params = {'a11':0.92879781, 'a12':-3.55398592, 'a21':0.02433039, 'a22':0.47768281, 'b11':5.8777473, 'b12':3.24133709, 'b21':0.36903981, 'b22':0.47650462}
+luenberger_params = {'a11':0.96246115, 'a12':-1.50947508, 'a21':0.02724377, 'a22':0.65462411, 'b11':6.38834801, 'b12':1.13344032, 'b21':0.41322953, 'b22':0.29407761}
+
+# --- Useful commands ---
+
+#u = np.array(buck.plat.cpu2_buffer_read(0))
+#niters = np.array(buck.plat.cpu2_buffer_read(1))
