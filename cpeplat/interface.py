@@ -30,6 +30,8 @@ class Commands:
         self.cpu2_trip_read = 0x13
         self.cpu2_observer_mode_set = 0x14
         self.cpu2_observer_mode_read = 0x15
+        self.cpu2_event_set = 0x16
+
 
 class Controllers:
     """Just a list with the controllers accepted by the platform.
@@ -39,8 +41,10 @@ class Controllers:
         self.open_loop = 1
         self.pid = 2
         self.sfb = 3
-        self.dmpc = 4
-        
+        self.matlab = 4
+        self.dmpc = 5
+
+
 class Interface:
     """A class to provide an interface to the C2000-based platform.
 
@@ -483,6 +487,9 @@ class Interface:
         else:
             data = [[data[2*i], data[2*i+1]] for i in range(n)]
             data = serialp.conversions.u8_to_u16(data, msb=False)
+            if type(data) is int:
+                data = [data]
+            
         
         return data
 
@@ -564,7 +571,7 @@ class Interface:
             return -3
 
         if size_rcvd != size:
-            print('{:}|\tBuffer {:}: error setting size. Size sent: {:}. Size received: {:}.'.format(funcname, adc, size, size_rcvd))
+            print('{:}|\tBuffer {:}: error setting size. Size sent: {:}. Size received: {:}.'.format(funcname, buffer, size, size_rcvd))
             return -4
         
         print('{:}|\tBuffer {:}: buffer set. Size: {:}'.format(funcname, buffer_rcvd, size_rcvd))
@@ -632,8 +639,10 @@ class Interface:
             data = []
         else:
             data = [[data[2*i], data[2*i+1]] for i in range(n)]
-            data = serialp.conversions.u8_to_u16(data, msb=False)
-        
+            data = serialp.conversions.u8_to_u16(data, msb=False) 
+            if type(data) is int:
+                data = [data]
+                
         return data
 
 
@@ -831,13 +840,18 @@ class Interface:
             g_hex = list(struct.pack('f', dt))[::-1]
             data.extend(g_hex)
 
-
-        elif mode == 'dmpc':
-            modei = self.controllers.dmpc
+        elif mode == 'matlab':    
+            modei = self.controllers.matlab
             
             # Control mode 
             data = [modei]
-                        
+
+        elif mode == 'dmpc':
+            modei = self.controllers.dmpc
+
+            # Control mode 
+            data = [modei]
+            
         else:
             print('Mode not recognized')
             return -1
@@ -1066,7 +1080,7 @@ class Interface:
             return -1
 
         if data[0] != 0:
-            print('{:}|\tADC {:} set trip {:}: command failed. Error: {:}.'.format(funcname, adc, trip, ref, data[0]))
+            print('{:}|\tADC {:} set trip {:}: command failed. Error: {:}.'.format(funcname, adc, trip, data[0]))
             return -2
 
         status = serialp.conversions.u8_to_u16(data[1:5], msb=True)
@@ -1424,6 +1438,83 @@ class Interface:
         
         return mode
 
+
+    def cpu2_event_set(self, gpio, start, end):
+        """Sets an event on CPU2.
+
+        The GPIO must have been properly initialized, i.e., set as output and
+        ownership given by CPU1 to CPU2.
+        
+        Parameters
+        ----------
+        gpio : int
+            GPIO to be set/reset during the event.
+
+        start : int
+            Start of the event. This is in number of PWM cycles. For instance,
+            if start is set to 250, the event will start on the 250th PWM
+            cycle.
+
+        end: int
+            End of the event. This is in number of PWM cycles. For instance,
+            if end is set to 500, the event will end on the 500th PWM cycle.
+
+        Returns
+        -------
+        status : int
+            Status of command. If command was executed successfully, returns 0.
+            Otherwise, returns a negative integer.
+        
+        Raises
+        ------
+        TypeError
+            If `gpio`, `start` or `end` is not of `int` type.
+        
+        """
+        funcname = Interface.cpu2_event_set.__name__
+        if type(gpio) is not int:
+            raise TypeError('`gpio` must be of int type.')
+
+        if type(start) is not int:
+            raise TypeError('`start` must be of int type.')
+
+        if type(end) is not int:
+            raise TypeError('`end` must be of int type.')
+        
+        self._flush_serial()
+
+        data = []
+        gpio32 = serialp.conversions.u32_to_u8(gpio, msb=True)
+        start32 = serialp.conversions.u32_to_u8(start, msb=True)
+        end32 = serialp.conversions.u32_to_u8(end, msb=True)
+
+        data.extend(gpio32)
+        data.extend(start32)
+        data.extend(end32)
+        
+        cmd = self.cmd.cpu2_event_set
+
+        self.ser.send(cmd, data)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tSet event: failed to communicate with CPU1.'.format(funcname))
+            return -1
+
+        if data[0] == 1:
+            print('{:}|\tSet event: communicated with CPU1 but CPU2 is unresponsive. Event not set.'.format(funcname))
+            return -2
+
+        status = serialp.conversions.u8_to_u32(data[1:5], msb=True)
+
+        if status != 0:
+            print('{:}|\tCould not set event. Status: {:}.'.format(funcname, status))
+            return -3
+        
+        print('{:}|\tEvent set.'.format(funcname))
+
+        return 0
+    
     
     def _flush_serial(self):
         

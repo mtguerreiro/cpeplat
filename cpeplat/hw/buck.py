@@ -1,6 +1,8 @@
 import cpeplat as cpe
 import numpy as np
 import time
+import cpeplat.result as res
+
 
 class BuckHWM:
     """A class to hold hardware mapping data for the buck platform.
@@ -20,6 +22,47 @@ class BuckHWM:
         self.gpio_input_relay = 8
         self.gpio_output_relay = 9
         self.gpio_fault_enable = 10
+        
+        self.vref_limit = 30
+        self.adc_Resolution = 4095
+        self.sample_time = 5e-06
+        
+        self.il_sensor_sensitiviy = 50e-03
+        self.il_sensor_offset = -2.5
+        self.il_resistor_gain = 3.9/5.9
+        self.il_adc_voltage_gain = 3/4095
+        self.u_pwm_gain = 0x03E7>>1
+        
+        
+        self.vin_buck_offset = 0
+        self.vin_offset = 0
+        self.vout_offset = 0
+        self.vout_buck_offset = 0 
+        self.il_offset = self.il_sensor_offset/self.il_sensor_sensitiviy
+        self.il_avg_offset = self.il_sensor_offset/self.il_sensor_sensitiviy
+        self.u_offset = 0
+        
+        self.vin_buck_gain = self.vref_limit/4095
+        self.vin_gain = self.vref_limit/4095
+        self.vout_gain = self.vref_limit/4095
+        self.vout_buck_gain = self.vref_limit/4095 
+        self.il_gain = self.il_adc_voltage_gain/(self.il_resistor_gain*self.il_sensor_sensitiviy)
+        self.il_avg_gain = self.il_adc_voltage_gain/(self.il_resistor_gain*self.il_sensor_sensitiviy)
+        self.u_gain = 1/self.u_pwm_gain
+
+
+class BuckControllerTypes:
+    """ A class which shows all avaiable Control Functions and their shortcuts
+    for calling them. Also defines different list of controllers which can be used
+    for a specific experiment function
+    """
+    
+    def __init__(self):
+        #All avaiable Controller Types
+        self.all = ['ol','matlab','pid','ol','sfb']
+        
+        #All avaiable Controller for function: experiemnt_tuning()
+        self.tuning = ['ol','pid','sfb']
 
 
 class BuckHWDefaultSettings:
@@ -40,14 +83,14 @@ class BuckHWDefaultSettings:
         self.u_buffer_size = 2000
 
         # Tripping
-        self.vin_trip = 3000
-        self.vin_buck_trip = 3000
+        self.vin_trip = 22
+        self.vin_buck_trip = 22
 
-        self.vout_trip = 3000
-        self.vout_buck_trip = 3000
+        self.vout_trip = 22
+        self.vout_buck_trip = 22
 
-        self.il_trip = 3200
-        self.il_avg_trip = 3200
+        self.il_trip = 25
+        self.il_avg_trip = 25
 
         # Blinking rate
         self.cpu1_blink = 2000
@@ -146,6 +189,9 @@ class Buck:
 
         hw_default = BuckHWDefaultSettings()
         self.hw_default = hw_default
+        
+        control_types = BuckControllerTypes()
+        self.control_types =control_types
 
         # Initializes ADC/CPU2 buffers
         plat.cpu1_adc_buffer_set(hwm.adc_vin, hw_default.vin_buffer_size)
@@ -163,14 +209,12 @@ class Buck:
                 
         # Sets and enable tripping for all ADCs
         status = 0
-        status = plat.cpu2_trip_set(hwm.adc_vin, hw_default.vin_trip)
-        status |= plat.cpu2_trip_set(hwm.adc_vin_buck, hw_default.vin_buck_trip)
-        
-        status |= plat.cpu2_trip_set(hwm.adc_vout, hw_default.vout_trip)
-        status |= plat.cpu2_trip_set(hwm.adc_vout_buck, hw_default.vout_buck_trip)
-        
-        status |= plat.cpu2_trip_set(hwm.adc_il, hw_default.il_trip)
-        status |= plat.cpu2_trip_set(hwm.adc_il_avg, hw_default.il_avg_trip)
+        status = self._set_trip_vin(hw_default.vin_trip)
+        status |= self._set_trip_vin_buck(hw_default.vin_buck_trip)     
+        status |=  self._set_trip_vout(hw_default.vout_trip)
+        status |=  self._set_trip_vout_buck(hw_default.vout_buck_trip)      
+        status |= self._set_trip_il(hw_default.il_trip)
+        status |= self._set_trip_il_avg(hw_default.il_avg_trip)
 
         status |= plat.cpu2_trip_enable(hwm.adc_vin)
         status |= plat.cpu2_trip_enable(hwm.adc_vin_buck)
@@ -387,7 +431,20 @@ class Buck:
             Returns 0 if command was executed properly, -1 otherwise.
         
         """
-        status = self.plat.cpu2_ref_set(ref)
+        
+        # Check for Right Input
+        if type(ref) is not int and type(ref) is not float:
+            raise TypeError('`ref` must be of `int` or `float` type.')
+
+        if ref > self.hwm.vref_limit or ref < 0:
+            raise ValueError('`ref` must be a value between 0 and ' + str(self.hwm.vref_limit) + '.')         
+         
+        # Get Reference from 0 -30 V  to 0 - 4095
+        ref_adc = ref * (4095/self.hwm.vref_limit);
+        ref_adc = round(ref_adc); #Getting Integer Value
+        
+        
+        status = self.plat.cpu2_ref_set(ref_adc)
         
         if status != 0:
             print('\nError setting the reference. Error code: {:}'.format(status))
@@ -453,6 +510,9 @@ class Buck:
             return -1
 
         data = np.array(data)
+        
+        # Calculate back in Voltage value        
+        data = data * self.hwm.vin_gain + self.hwm.vin_offset
 
         return data
 
@@ -476,6 +536,9 @@ class Buck:
             return -1
 
         data = np.array(data)
+        
+        # Calculate back in Voltage value        
+        data = data * self.hwm.vin_buck_gain + self.hwm.vin_buck_offset
 
         return data
 
@@ -499,7 +562,10 @@ class Buck:
             return -1
 
         data = np.array(data)
-
+        
+        # Calculate back in Voltage value        
+        data = data * self.hwm.vout_gain + self.hwm.vout_offset
+        
         return data
 
 
@@ -522,7 +588,10 @@ class Buck:
             return -1
 
         data = np.array(data)
-
+        
+        # Calculate back in Voltage value        
+        data = data * self.hwm.vout_buck_gain + self.hwm.vout_buck_offset
+        
         return data
 
 
@@ -545,6 +614,9 @@ class Buck:
             return -1
 
         data = np.array(data)
+        
+        # Calculate back in Current (A) value     
+        data = data * self.hwm.il_gain + self.hwm.il_offset
 
         return data
 
@@ -569,6 +641,9 @@ class Buck:
 
         data = np.array(data)
 
+        # Calculate back in Current (A) value     
+        data = data * self.hwm.il_avg_gain + self.hwm.il_avg_offset
+    
         return data
 
 
@@ -591,7 +666,8 @@ class Buck:
             return -1
 
         data = np.array(data)
-
+        
+        data = data * self.hwm.u_gain + self.hwm.u_offset
         return data
 
 
@@ -643,7 +719,12 @@ class Buck:
             if type(u) is not int: break
             print('Could not read u buffer... trying again.')
 
-        return [vin, vin_buck, vo, vout_buck, il, il_avg, u]
+        #Adding Time Signal, in MilliSeconds
+        SampleList = list(range(0,len(vout)));
+        t = [element * self.hwm.sample_time * 1000 for element in SampleList];
+        t = np.array(t) # t in mili seconds
+        
+        return [t, vin, vin_buck, vout, vout_buck, il, il_avg, u]
 
 
     def _set_trip_vin(self, trip):
@@ -664,6 +745,9 @@ class Buck:
 
         """
         adc = self.hwm.adc_vin
+        
+        #Trip into ADC-Value from Voltage
+        trip = round(trip * self.hwm.adc_Resolution / self.hwm.vref_limit)
 
         status = self.plat.cpu2_trip_set(adc, trip)
 
@@ -713,7 +797,10 @@ class Buck:
 
         """
         adc = self.hwm.adc_vin_buck
-
+        
+        #Trip into ADC-Value from Voltage
+        trip = round(trip * self.hwm.adc_Resolution / self.hwm.vref_limit)
+        
         status = self.plat.cpu2_trip_set(adc, trip)
 
         if status != 0:
@@ -762,7 +849,10 @@ class Buck:
 
         """
         adc = self.hwm.adc_vout
-
+        
+        #Trip into ADC-Value from Voltage
+        trip = round(trip * self.hwm.adc_Resolution / self.hwm.vref_limit)
+        
         status = self.plat.cpu2_trip_set(adc, trip)
 
         if status != 0:
@@ -811,7 +901,10 @@ class Buck:
 
         """
         adc = self.hwm.adc_vout_buck
-
+        
+        #Trip into ADC-Value from Voltage
+        trip = round(trip * self.hwm.adc_Resolution / self.hwm.vref_limit)
+        
         status = self.plat.cpu2_trip_set(adc, trip)
 
         if status != 0:
@@ -860,6 +953,8 @@ class Buck:
 
         """
         adc = self.hwm.adc_il
+        
+        trip = round((trip-self.hwm.il_sensor_offset/self.hwm.il_sensor_sensitiviy)/(self.hwm.il_adc_voltage_gain/(self.hwm.il_resistor_gain*self.hwm.il_sensor_sensitiviy)))
 
         status = self.plat.cpu2_trip_set(adc, trip)
 
@@ -909,7 +1004,9 @@ class Buck:
 
         """
         adc = self.hwm.adc_il_avg
-
+        
+        trip = round((trip-self.hwm.il_sensor_offset/self.hwm.il_sensor_sensitiviy)/(self.hwm.il_adc_voltage_gain/(self.hwm.il_resistor_gain*self.hwm.il_sensor_sensitiviy)))
+        
         status = self.plat.cpu2_trip_set(adc, trip)
 
         if status != 0:
@@ -1021,7 +1118,7 @@ class Buck:
         while 1:
             vin = self.read_vin_buffer()
             if type(vin) is not int: break
-            print('Could not read Vin buffer... trying again.') 
+            print('Could not read Vin buffer... trying again.')
 
         while 1:
             vin_buck = self.read_vin_buck_buffer()
@@ -1052,8 +1149,125 @@ class Buck:
             u = self.read_u_buffer()
             if type(u) is not int: break
             print('Could not read u buffer... trying again.')
+            
+        #Creating time Vector: 
+        # t in mili seconds
+        SampleList = list(range(0,len(vout)));
+        t = [element *self.hwm.sample_time*1000 for element in SampleList];
+        t = np.array(t) # t in mili seconds
 
-        data = [vin, vin_buck, vout, vout_buck, il, il_avg, u]
+        data = [t, vin, vin_buck, vout, vout_buck, il, il_avg, u]
 
         return data
             
+    def experiment_tuning(self, ref, control, params, obs=None, obs_params=None):
+            """Runs several experiment in a row with a set Control and different 
+            Parameter-Sets which were given in a list.
+    
+            The experiment consists of setting control mode, closing the
+            input/output relays, enabling the PWM for a certain amount of time,
+            disabling the PWM and opening the input/output relays.
+    
+            Data from all the experiments is then returned.
+            So that the different Parameter-Sets can be compared.
+    
+            Returns
+            -------
+            data or status : list or int
+                If no errors occurred during the experiment, data from the ADCs
+                is returned. Otherwise, returns -1.
+            
+            Raises
+            ------
+            NameError:
+                If `mode` is not of Type ('pid', 'ol' or 'sfb'.)
+    
+            TypeError
+                If `params` is not of `dict` type.
+                
+            """
+            
+            #Error Checking: Not supported Control                
+            if control not in self.control_types.tuning:
+                if control == 'matlab':
+                    raise NameError('Tuning of External Matlab Control currently not supported!')
+                else:
+                    raise NameError('Unknwon Control Mode!')
+                    
+            #Starting Tuning Experiment      
+            data = []
+            leg = []
+            for para_set in params:
+                data.append(self.experiment(ref,control,para_set, obs, obs_params))
+                
+            if control == 'ol':
+                title = 'Compare Different OpenLoop Tunings'
+                for para_set in params:
+                    leg.append('u = ' + str(round(para_set['u'],3)))
+            elif control == 'pid':
+                title = 'Compare Different PID Tunings'
+                counter = 0
+                for para_set in params:
+                    leg.append('PID '+ str(counter+1))
+                    counter = counter + 1
+            elif control == 'sfb':
+                title = 'Compare Different State Feedback Controller'
+                counter = 0
+                for para_set in params:
+                    leg.append('SFB '+ str(counter+1))
+                    counter = counter + 1
+                        
+                        # Plotting Plot of Different Tunings
+            res.plot_compare_all(data, leg = leg, title = title)
+                                           
+            return data
+
+
+    def experiment_compare(self, ref, controllers, params, leg = None, title = None, obs=None, obs_params=None):
+            """Runs several experiment in a row with different Controllers
+            and compares the result
+    
+            The experiment consists of setting control mode, closing the
+            input/output relays, enabling the PWM for a certain amount of time,
+            disabling the PWM and opening the input/output relays.
+    
+            Data from all the experiments is then returned.
+            So that the different Parameter-Sets can be compared.
+    
+            Returns
+            -------
+            data or status : list or int
+                If no errors occurred during the experiment, data from the ADCs
+                is returned. Otherwise, returns -1.
+            
+            Raises
+            ------
+            NameError:
+                If `mode` is not of Type ('pid', 'ol' or 'sfb'.)
+    
+            TypeError
+                If `params` is not of `dict` type.
+                
+            """
+            # Checking for valid Control Type
+            control_counter = 0
+            data = []
+            
+            for control in controllers:
+            #Error Checking: Not supported Control                
+                if control not in self.control_types.all:
+                    if control == 'matlab':
+                        raise NameError('Unknwon Control Mode!')
+                    
+            #Starting Tuning Experiment      
+                data.append(self.experiment(ref, control, params[control_counter], obs, obs_params))
+                control_counter = control_counter + 1
+            
+            if leg is None:
+                leg = controllers
+
+                       
+            # Plotting Plot of Different Tunings
+            res.plot_compare_all(data, leg = leg, title = title)
+                                           
+            return data            
