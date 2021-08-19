@@ -1350,6 +1350,7 @@ class Interface:
                 if (type(g) is not float) and (type(g) is not int):
                     raise TypeError('In `luenberger` mode, all parameters must be of either `float` or `int` type.')
 
+            data = [modei]
             for g in obsparams:
                 g_hex = list(struct.pack('f', g))[::-1]
                 data.extend(g_hex)
