@@ -1376,24 +1376,9 @@ class Interface:
             # Observer mode 
             data = [modei]
 
-            g_hex = list(struct.pack('f', a11))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', a12))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', b11))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', a21))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', a22))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', a23))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', a24))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', a25))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', a26))[::-1]
-            data.extend(g_hex)
+            for g in obsparams:
+                g_hex = list(struct.pack('f', g))[::-1]
+                data.extend(g_hex)
             
         else:
             print('Mode not recognized')
