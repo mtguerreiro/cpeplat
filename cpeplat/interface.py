@@ -44,6 +44,17 @@ class Controllers:
         self.matlab = 4
 
 
+class Observers:
+    """Just a list with the controllers accepted by the platform.
+    """
+    def __init__(self):
+        self.none = 0
+        self.open_loop = 1
+        self.pid = 2
+        self.sfb = 3
+        self.matlab = 4
+
+
 class Interface:
     """A class to provide an interface to the C2000-based platform.
 
@@ -1321,9 +1332,30 @@ class Interface:
 
         if type(params) is not dict:
             raise TypeError('`params` must be of `dict` type.')
-            
-        if mode == 'cimini':
+
+        if mode == 'luenberger':
             modei = 1
+            a11 = params['a11']
+            a12 = params['a12']
+            a21 = params['a21']
+            a22 = params['a22']
+
+            b11 = params['b11']
+            b12 = params['b12']
+            b21 = params['b21']
+            b22 = params['b22']
+
+            obsparams = [a11, a12, a21, a22, b11, b12, b21, b22]
+            for g in obsparams:
+                if (type(g) is not float) and (type(g) is not int):
+                    raise TypeError('In `luenberger` mode, all parameters must be of either `float` or `int` type.')
+
+            for g in obsparams:
+                g_hex = list(struct.pack('f', g))[::-1]
+                data.extend(g_hex)
+                
+        elif mode == 'cimini':
+            modei = 2
             a11 = params['a11']
             a12 = params['a12']
             b11 = params['b11']
