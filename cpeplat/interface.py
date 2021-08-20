@@ -30,6 +30,8 @@ class Commands:
         self.cpu2_trip_read = 0x13
         self.cpu2_observer_mode_set = 0x14
         self.cpu2_observer_mode_read = 0x15
+        self.cpu2_event_set = 0x16
+
 
 class Controllers:
     """Just a list with the controllers accepted by the platform.
@@ -40,7 +42,19 @@ class Controllers:
         self.pid = 2
         self.sfb = 3
         self.matlab = 4
-        
+
+
+class Observers:
+    """Just a list with the controllers accepted by the platform.
+    """
+    def __init__(self):
+        self.none = 0
+        self.open_loop = 1
+        self.pid = 2
+        self.sfb = 3
+        self.matlab = 4
+
+
 class Interface:
     """A class to provide an interface to the C2000-based platform.
 
@@ -1318,9 +1332,31 @@ class Interface:
 
         if type(params) is not dict:
             raise TypeError('`params` must be of `dict` type.')
-            
-        if mode == 'cimini':
+
+        if mode == 'luenberger':
             modei = 1
+            a11 = params['a11']
+            a12 = params['a12']
+            a21 = params['a21']
+            a22 = params['a22']
+
+            b11 = params['b11']
+            b12 = params['b12']
+            b21 = params['b21']
+            b22 = params['b22']
+
+            obsparams = [a11, a12, a21, a22, b11, b12, b21, b22]
+            for g in obsparams:
+                if (type(g) is not float) and (type(g) is not int):
+                    raise TypeError('In `luenberger` mode, all parameters must be of either `float` or `int` type.')
+
+            data = [modei]
+            for g in obsparams:
+                g_hex = list(struct.pack('f', g))[::-1]
+                data.extend(g_hex)
+                
+        elif mode == 'cimini':
+            modei = 2
             a11 = params['a11']
             a12 = params['a12']
             b11 = params['b11']
@@ -1340,24 +1376,9 @@ class Interface:
             # Observer mode 
             data = [modei]
 
-            g_hex = list(struct.pack('f', a11))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', a12))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', b11))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', a21))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', a22))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', a23))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', a24))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', a25))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', a26))[::-1]
-            data.extend(g_hex)
+            for g in obsparams:
+                g_hex = list(struct.pack('f', g))[::-1]
+                data.extend(g_hex)
             
         else:
             print('Mode not recognized')
@@ -1428,6 +1449,83 @@ class Interface:
         
         return mode
 
+
+    def cpu2_event_set(self, gpio, start, end):
+        """Sets an event on CPU2.
+
+        The GPIO must have been properly initialized, i.e., set as output and
+        ownership given by CPU1 to CPU2.
+        
+        Parameters
+        ----------
+        gpio : int
+            GPIO to be set/reset during the event.
+
+        start : int
+            Start of the event. This is in number of PWM cycles. For instance,
+            if start is set to 250, the event will start on the 250th PWM
+            cycle.
+
+        end: int
+            End of the event. This is in number of PWM cycles. For instance,
+            if end is set to 500, the event will end on the 500th PWM cycle.
+
+        Returns
+        -------
+        status : int
+            Status of command. If command was executed successfully, returns 0.
+            Otherwise, returns a negative integer.
+        
+        Raises
+        ------
+        TypeError
+            If `gpio`, `start` or `end` is not of `int` type.
+        
+        """
+        funcname = Interface.cpu2_event_set.__name__
+        if type(gpio) is not int:
+            raise TypeError('`gpio` must be of int type.')
+
+        if type(start) is not int:
+            raise TypeError('`start` must be of int type.')
+
+        if type(end) is not int:
+            raise TypeError('`end` must be of int type.')
+        
+        self._flush_serial()
+
+        data = []
+        gpio32 = serialp.conversions.u32_to_u8(gpio, msb=True)
+        start32 = serialp.conversions.u32_to_u8(start, msb=True)
+        end32 = serialp.conversions.u32_to_u8(end, msb=True)
+
+        data.extend(gpio32)
+        data.extend(start32)
+        data.extend(end32)
+        
+        cmd = self.cmd.cpu2_event_set
+
+        self.ser.send(cmd, data)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tSet event: failed to communicate with CPU1.'.format(funcname))
+            return -1
+
+        if data[0] == 1:
+            print('{:}|\tSet event: communicated with CPU1 but CPU2 is unresponsive. Event not set.'.format(funcname))
+            return -2
+
+        status = serialp.conversions.u8_to_u32(data[1:5], msb=True)
+
+        if status != 0:
+            print('{:}|\tCould not set event. Status: {:}.'.format(funcname, status))
+            return -3
+        
+        print('{:}|\tEvent set.'.format(funcname))
+
+        return 0
+    
     
     def _flush_serial(self):
         
