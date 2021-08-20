@@ -206,8 +206,8 @@ class Buck:
 
         plat.cpu2_buffer_set(hwm.cpu2_buffer_u, hw_default.u_buffer_size)
         plat.cpu2_buffer_set(hwm.cpu2_buffer_1, hw_default.u_buffer_size)
-        plat.cpu2_buffer_set(hwm.cpu2_buffer_2, hw_default.u_buffer_size)
-        plat.cpu2_buffer_set(hwm.cpu2_buffer_3, hw_default.u_buffer_size)
+        plat.cpu2_buffer_set(hwm.cpu2_buffer_2, 2 * hw_default.u_buffer_size)
+        plat.cpu2_buffer_set(hwm.cpu2_buffer_3, 2 * hw_default.u_buffer_size)
                 
         # Sets and enable tripping for all ADCs
         status = 0
@@ -418,6 +418,42 @@ class Buck:
         
         return status
 
+
+    def enable_observer(self):
+        """Enables the observer.
+
+        Returns
+        -------
+        status : int
+            Returns 0 if command was executed properly, -1 otherwise.
+        
+        """
+        status = self.plat.cpu2_observer_enable()
+        
+        if status != 0:
+            print('\nError enabling the observer. Error code: {:}'.format(status))
+            status = -1
+        
+        return status
+
+
+    def disable_observer(self):
+        """Disables the observer.
+
+        Returns
+        -------
+        status : int
+            Returns 0 if command was executed properly, -1 otherwise.
+        
+        """
+        status = self.plat.cpu2_observer_disable()
+        
+        if status != 0:
+            print('\nError setting the observer mode. Error code: {:}'.format(status))
+            status = -1
+        
+        return status
+    
     
     def set_reference(self, ref):
         """Sets the reference for control modes other than open-loop.

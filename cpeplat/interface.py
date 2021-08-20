@@ -30,7 +30,9 @@ class Commands:
         self.cpu2_trip_read = 0x13
         self.cpu2_observer_mode_set = 0x14
         self.cpu2_observer_mode_read = 0x15
-        self.cpu2_event_set = 0x16
+        self.cpu2_observer_enable = 0x16
+        self.cpu2_observer_disable = 0x17
+        self.cpu2_event_set = 0x18
 
 
 class Controllers:
@@ -1325,7 +1327,6 @@ class Interface:
 
         TypeError
             If `params` is not of `dict` type.
-        
             
         """
         funcname = Interface.cpu2_observer_mode_set.__name__
@@ -1429,11 +1430,11 @@ class Interface:
             negative integer.
             
         """
-        funcname = Interface.cpu2_control_mode_read.__name__
+        funcname = Interface.cpu2_observer_mode_read.__name__
 
         self._flush_serial()
         
-        cmd = self.cmd.cpu2_control_mode_read
+        cmd = self.cmd.cpu2_observer_mode_read
         self.ser.send(cmd)
         data = self.ser.read(cmd)
 
@@ -1457,6 +1458,80 @@ class Interface:
         return mode
 
 
+    def cpu2_observer_enable(self):
+        """Enables the observer.
+
+        Returns
+        -------
+        status : int
+            Status of command. If command was executed successfully, returns 0.
+            Otherwise, returns a negative integer
+            
+        """
+        funcname = Interface.cpu2_observer_enable.__name__
+
+        self._flush_serial()
+        
+        cmd = self.cmd.cpu2_observer_enable
+        self.ser.send(cmd)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tFailed to communicate with CPU1.'.format(funcname))
+            return -1
+        
+        if data[0] == 1:
+            print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. Control mode not read.'.format(funcname))
+            return -2
+
+        status = serialp.conversions.u8_to_u32(data[1:5], msb=True)   
+
+        if status != 0:
+            print('{:}|\tCould not enable observer. Status: {:}.'.format(funcname, status))
+            return -3
+
+        print('{:}|\tObserver enabled.'.format(funcname))
+        
+        return 0
+    
+
+    def cpu2_observer_disable(self):
+        """Disables the observer.
+
+        Returns
+        -------
+        status : int
+            Status of command. If command was executed successfully, returns 0.
+            Otherwise, returns a negative integer
+            
+        """
+        funcname = Interface.cpu2_observer_disable.__name__
+
+        self._flush_serial()
+        
+        cmd = self.cmd.cpu2_observer_disable
+        self.ser.send(cmd)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tFailed to communicate with CPU1.'.format(funcname))
+            return -1
+        
+        if data[0] == 1:
+            print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. Control mode not read.'.format(funcname))
+            return -2
+
+        status = serialp.conversions.u8_to_u16(data[1:5], msb=True)   
+
+        if status != 0:
+            print('{:}|\tCould not disable observer. Status: {:}.'.format(funcname, status))
+            return -3
+
+        print('{:}|\tObserver disabled.'.format(funcname))
+        
+        return 0
+
+    
     def cpu2_event_set(self, gpio, start, end):
         """Sets an event on CPU2.
 
