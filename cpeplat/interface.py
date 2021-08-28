@@ -1387,7 +1387,29 @@ class Interface:
             for g in obsparams:
                 g_hex = list(struct.pack('f', g))[::-1]
                 data.extend(g_hex)
+
+        elif mode == 'predictive':
+            modei = 3
+            a11 = params['a11']
+            a12 = params['a12']
+            a21 = params['a21']
+            a22 = params['a22']
+
+            b11 = params['b11']
+            b21 = params['b21']
+
+            obsparams = [a11, a12, a21, a22, b11, b21]
+            for g in obsparams:
+                if (type(g) is not float) and (type(g) is not int):
+                    raise TypeError('In `predictive` mode, all parameters must be of either `float` or `int` type.')
             
+            # Observer mode 
+            data = [modei]
+
+            for g in obsparams:
+                g_hex = list(struct.pack('f', g))[::-1]
+                data.extend(g_hex)
+        
         else:
             print('Mode not recognized')
             return -1
