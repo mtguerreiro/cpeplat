@@ -7,7 +7,7 @@ import cpeplat.result as res
 class BuckHWM:
     """A class to hold hardware mapping data for the buck platform.
     """
-    def __init__(self):
+    def __init__(self, f_pwm=200e3):
         self.adc_vin = 0
         self.adc_vin_buck = 1
         self.adc_il = 2
@@ -26,13 +26,13 @@ class BuckHWM:
         
         self.vref_limit = 30
         self.adc_Resolution = 4095
-        self.sample_time = 5e-06
+        self.sample_time = 1 / f_pwm
         
         self.il_sensor_sensitiviy = 50e-03
         self.il_sensor_offset = -2.5
         self.il_resistor_gain = 3.9/5.9
         self.il_adc_voltage_gain = 3/4095
-        self.u_pwm_gain = 0x03E7>>1
+        self.u_pwm_gain = (100e6 / f_pwm) - 1
         
         
         self.vin_buck_offset = 0
@@ -72,16 +72,16 @@ class BuckHWDefaultSettings:
     def __init__(self):
 
         # Buffers
-        self.vin_buffer_size = 2000
-        self.vin_buck_buffer_size = 2000
+        self.vin_buffer_size = 750
+        self.vin_buck_buffer_size = 750
 
-        self.il_buffer_size = 2000
-        self.vout_buffer_size = 2000
+        self.il_buffer_size = 750
+        self.vout_buffer_size = 750
 
-        self.il_avg_buffer_size = 2000
-        self.vout_buck_buffer_size = 2000
+        self.il_avg_buffer_size = 750
+        self.vout_buck_buffer_size = 750
 
-        self.u_buffer_size = 2000
+        self.u_buffer_size = 750
 
         # Tripping
         self.vin_trip = 22
@@ -174,18 +174,21 @@ class Buck:
     timeout : int, float
         Communication time-out, in seconds. By default, it is 0.2 s.
 
+    f_pwm : float
+        Switching frequency on the platform.
+
     Raises
     ------
     ValueError
         If setting any of the tripping values fail.
         
     """
-    def __init__(self, com, baud=115200, to=0.2):
+    def __init__(self, com, baud=115200, to=0.2, f_pwm=200e3):
 
         plat = cpe.interface.Interface(com, baud, to)
         self.plat = plat
         
-        hwm = BuckHWM()
+        hwm = BuckHWM(f_pwm)
         self.hwm = hwm
 
         hw_default = BuckHWDefaultSettings()
@@ -1309,3 +1312,149 @@ class Buck:
             res.plot_compare_all(data, leg = leg, title = title)
                                            
             return data            
+
+
+    def experiment_dmpc(self, ref, control, params, obs=None, obs_params=None, event=False, event_params={}):
+        """Runs an experiment.
+
+        The experiment consists of setting control mode, closing the
+        input/output relays, enabling the PWM for a certain amount of time,
+        disabling the PWM and opening the input/output relays.
+
+        Data from the experiment is then returned.
+
+        Returns
+        -------
+        data or status : list or int
+            If no errors occurred during the experiment, data from the ADCs
+            is returned. Otherwise, returns -1.
+            
+        """
+        status = self.set_reference(ref)
+        
+        status = self.set_control_mode(control, params)
+        if status != 0:
+            print('Could not set control mode. Aborting experiment.')
+            return -1
+
+        if obs is not None:
+            status = self.set_observer_mode(obs, obs_params)
+            if status != 0:
+                print('Could not set observer mode. Aborting experiment.')
+                return -1
+            status = self.enable_observer()
+            if status != 0:
+                print('Could not enable observer. Aborting experiment.')
+                return -1
+        else:
+            status = self.disable_observer()
+            if status != 0:
+                print('Could not disable observer. Aborting experiment.')
+                return -1
+            
+        if event is True:
+            gpio = event_params['gpio']
+            start = event_params['start']
+            stop = event_params['end']
+            status - self.plat.cpu2_event_set(gpio, start, stop)
+            if status != 0:
+                print('Could not set control mode. Aborting experiment.')
+                return -1
+        
+        status = self.enable_input_relay()
+        if status != 0:
+            print('Could not close input relay. Aborting experiment.')
+            return -1
+
+        time.sleep(2)
+
+        status = self.enable_pwm()
+        if status != 0:
+            print('Could not enable PWM. Aborting experiment.')
+            while 1:
+                status = self.disable_input_relay()
+                if status == 0: break
+            while 1:
+                status = self.disable_output_relay()
+                if status == 0: break
+            return -1
+
+        time.sleep(3)
+
+        while 1:
+            status = self.disable_pwm()
+            status = self.disable_pwm()
+            if status == 0: break
+            print('Could not disable PWM signal... trying again.')
+
+        time.sleep(2)
+        
+        while 1:
+            status = self.disable_input_relay()
+            if status == 0: break
+            print('Could not open input relay... trying again.')
+
+        while 1:
+            status = self.disable_output_relay()
+            if status == 0: break
+            print('Could not open output relay... trying again.')
+
+        while 1:
+            vin = self.read_vin_buffer()
+            if type(vin) is not int: break
+            print('Could not read Vin buffer... trying again.')
+
+        while 1:
+            vin_buck = self.read_vin_buck_buffer()
+            if type(vin_buck) is not int: break
+            print('Could not read Vin_buck buffer... trying again.')
+
+        while 1:
+            vout = self.read_vout_buffer()
+            if type(vout) is not int: break
+            print('Could not read Vout buffer... trying again.')
+
+        while 1:
+            vout_buck = self.read_vout_buck_buffer()
+            if type(vout_buck) is not int: break
+            print('Could not read Vout_buck buffer... trying again.')
+            
+        while 1:
+            il = self.read_il_buffer()
+            if type(il) is not int: break
+            print('Could not read IL buffer... trying again.')
+
+        while 1:
+            il_avg = self.read_il_avg_buffer()
+            if type(il_avg) is not int: break
+            print('Could not read IL_avg buffer... trying again.')            
+
+        while 1:
+            u = self.read_u_buffer()
+            if type(u) is not int: break
+            print('Could not read u buffer... trying again.')
+
+        while 1:
+            niter = np.array(self.plat.cpu2_buffer_read(1))
+            if type(niter) is not int: break
+            print('Could not read niter buffer... trying again.')
+
+        while 1:
+            il_hat = np.array(self.plat.cpu2_buffer_read_float(2))
+            if type(il_hat) is not int: break
+            print('Could not read il_hat buffer... trying again.')
+
+        while 1:
+            vc_hat = np.array(self.plat.cpu2_buffer_read_float(3))
+            if type(vc_hat) is not int: break
+            print('Could not read vc_hat buffer... trying again.')
+            
+        #Creating time Vector: 
+        # t in mili seconds
+        SampleList = list(range(0,len(vout)));
+        t = [element *self.hwm.sample_time*1000 for element in SampleList];
+        t = np.array(t) # t in mili seconds
+
+        data = [t, vin, vin_buck, vout, vout_buck, il, il_avg, u, niter, il_hat, vc_hat]
+
+        return data
