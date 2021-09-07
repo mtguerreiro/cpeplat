@@ -1,3 +1,43 @@
+"""
+Module ``interface``
+====================
+
+This module contains the C2000 controller interface.
+
+ADC mapping
+-----------
+
+Functions concerning the ADCs index each individual ADC with a number
+between 0 and `N`, where `N` is the maximum number of ADCs. The ADCs
+indexes are mapped to the physical ADCs as follows:
+
+- ADC 0: ADCIN_A1
+- ADC 1: ADCIN_A4
+- ADC 2: ADCIN_A5
+- ADC 3: ADCIN_B4
+- ADC 4: ADCIN_B5
+- ADC 5: ADCIN_C4
+
+This mapping is valid for all ADC-related settings. For instance, setting
+the tripping limit for ADC 2 will set the tripping limit for ADC_A5,
+reading the buffer for ADC 4 will read the buffer of ADC_B5, and so on.
+
+CPU2 buffer
+-----------
+
+The data stored in CPU2's buffer depends on each application. Usually,
+buffer 0 will hold the control signal. Ultimately, it is up to the user to
+set the buffers and interpret the data.
+
+GPIOs
+-----
+
+Currently, the interface can set the level of any GPIO. However,
+initialization of the corresponding pin must be done in firmware. The
+current interface does not provide any GPIO initialization.
+
+
+"""
 import serialp
 import time
 import struct
@@ -56,40 +96,7 @@ class Observers:
 
 
 class Interface:
-    """A class to provide an interface to the C2000-based platform.
-
-    ADC mapping
-    -----------
-
-    Functions concerning the ADCs index each individual ADC with a number
-    between 0 and `N`, where `N` is the maximum number of ADCs. The ADCs
-    indexes are mapped to the physical ADCs as follows:
-
-    - ADC 0: ADCIN_A1
-    - ADC 1: ADCIN_A4
-    - ADC 2: ADCIN_A5
-    - ADC 3: ADCIN_B4
-    - ADC 4: ADCIN_B5
-    - ADC 5: ADCIN_C4
-
-    This mapping is valid for all ADC-related settings. For instance, setting
-    the tripping limit for ADC 2 will set the tripping limit for ADC_A5,
-    reading the buffer for ADC 4 will read the buffer of ADC_B5, and so on.
-
-    CPU2 buffer
-    -----------
-
-    The data stored in CPU2's buffer depends on each application. Usually,
-    buffer 0 will hold the control signal. Ultimately, it is up to the user to
-    set the buffers and interpret the data.
-
-    GPIOs
-    -----
-
-    Currently, the interface can set the level of any GPIO. However,
-    initialization of the corresponding pin must be done in firmware. The
-    current interface does not provide any GPIO initialization.
-    
+    """A class to provide an interface to the C2000-based controller.    
 
     Parameters
     ----------

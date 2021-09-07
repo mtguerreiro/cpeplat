@@ -1,3 +1,10 @@
+"""
+Module ``buck``
+===============
+
+This module contains the PLECS-buck simulation interface.
+
+"""
 import cpeplat as cpe
 import numpy as np
 import time

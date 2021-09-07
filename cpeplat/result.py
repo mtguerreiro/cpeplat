@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 """
+Module ``result``
+=================
+
+This module contains functions for data plotting.
+
 Created on Thu Aug  5 09:16:57 2021
 
 @author: Moritz Frantz
