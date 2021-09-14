@@ -62,6 +62,9 @@ luenberger_params_4 = {'a11':0.80666035, 'a12':-10.97188781, 'a21':0.01832556, '
 # Predictive params
 predictive_params = {'a11':0.98045844, 'a12':-0.41041963, 'a21':0.0319637, 'a22':0.9397248, 'b11':6.6690711, 'b21':0.48621616}
 
+# 12.5 kHz
+# predictive_params = {'a11':0.8506763593070253, 'a12':-1.4328448535171676, 'a21':0.1115907336103105, 'a22':0.7084682721827044, 'b11':24.431192630964375, 'b21':2.9606253732915335}
+
 # --- Useful commands ---
 #u = np.array(buck.plat.cpu2_buffer_read(0))
 #niters = np.array(buck.plat.cpu2_buffer_read(1))
