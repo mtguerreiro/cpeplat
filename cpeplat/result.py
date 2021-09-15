@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 """
 Module ``result``
-=================
+===========================
 
-This module contains functions for data plotting.
+This module contains the functions for plotting and saving the data from an experiment.
 
-Created on Thu Aug  5 09:16:57 2021
+Created on 15. September 2021
 
 @author: Moritz Frantz
 """
+
+
+
 
 import cpeplat as cpe
 import numpy as np
@@ -54,93 +57,30 @@ def _setting_title(title):
     plt.title(title, fontsize=14)
 
 
+##########-------------- Plot Functions  -------------############
 
-##########-------------- Basic Plot Functions  -------------------############
+def plot_vin(data, leg = None):
+    """Plots input voltage from saved experiment data.
 
-def plot_vin(data):
-        
-    #Expected DataType np.array
-    plt.figure(figsize=(9, 6))
-    plt.plot(data[0],data[1])
-        
-    res._setting_labels('Voltage')
-    res._setting_title('Input Voltage')
-    plt.grid()
-    return
+    Example
+    --------------
+    Code Example for 1 and more data sets.
+          
+    .. code-block:: python
     
-def plot_vin_buck(data):
-
-    #Expected DataType np.array
-    plt.figure(figsize=(9, 6))
-    plt.plot(data[0],data[2])
-        
-    res._setting_labels('Voltage')
-    res._setting_title('Input Voltage Buck')
-    plt.grid()
-    return       
-
-def plot_vout(data):
-        
-    #Expected DataType np.array
-    plt.figure(figsize=(9, 6))
-    plt.plot(data[0],data[3])
-        
-    res._setting_labels('Voltage')
-    res._setting_title('Output Voltage')
-    plt.grid()
-    return
-
-def plot_vout_buck(data):
-        
-    #Expected DataType np.array
-    plt.figure(figsize=(9, 6))
-    plt.plot(data[0],data[4])
-        
-    res._setting_labels('Voltage')
-    res._setting_title('Output Voltage Buck')
-    plt.grid()
-    return
-
-def plot_il(data):
-        
-    #Expected DataType np.array
-    plt.figure(figsize=(9, 6))
-    plt.plot(data[0],data[5])
-        
-    res._setting_labels('Current')
-    res._setting_title('Output Current')
-    plt.grid()
-    return
-
-def plot_il_avg(data):
-        
-    #Expected DataType np.array
-    plt.figure(figsize=(9, 6))
-    plt.plot(data[0],data[6])
-        
-    res._setting_labels('Current')
-    res._setting_title('Output Current Average')
-    plt.grid()
-    return
-
-def plot_u(data):
-        
-    #Expected DataType np.array
-    plt.figure(figsize=(9, 6))
-    plt.plot(data[0],data[7])
-        
-    res._setting_labels('ControlSignal')
-    res._setting_title('Control Signal u')
-    plt.grid()
-    return
-
-##########-------------- Comparision Plot Functions  -------------############
-
-def plot_compare_vin(data, leg = None):
-    """ Compares Data from experiments and plots it in one Figure
+        plot_compare([data1],['pid_1']) 
+        plot_compare([data1, data2],['pid_1', 'pid_2'])
+       
+    Parameters
+    --------------
     
-    Expect: numpy Matrix
-    Example: plot_compare([data1, data2],['pid_1', 'pid_2'])
+    data : list of lists
+        Saved data from experiments.
+
+    leg : list of strings
+        Generating the naming for the legend.
+        
+       
     """
     
     plt.figure(figsize=(9, 6))
@@ -154,7 +94,7 @@ def plot_compare_vin(data, leg = None):
     res._setting_legend(leg, counter_data)
     plt.grid()
 
-def plot_compare_vin_buck(data, leg = None):
+def plot_vin_buck(data, leg = None):
     """ Compares Data from experiments and plots it in one Figure
     
     Expect: numpy Matrix
@@ -172,7 +112,7 @@ def plot_compare_vin_buck(data, leg = None):
     res._setting_legend(leg, counter_data)
     plt.grid()
     
-def plot_compare_vout(data, leg = None):
+def plot_vout(data, leg = None):
     """ Compares Data from experiments and plots it in one Figure
     
     Expect: numpy Matrix
@@ -191,7 +131,7 @@ def plot_compare_vout(data, leg = None):
     plt.grid()
 
     
-def plot_compare_vout_buck(data, leg = None):
+def plot_vout_buck(data, leg = None):
     """ Compares Data from experiments and plots it in one Figure
     
     Expect: numpy Matrix
@@ -209,7 +149,7 @@ def plot_compare_vout_buck(data, leg = None):
     res._setting_legend(leg, counter_data)    
     plt.grid()
     
-def plot_compare_il(data, leg = None):
+def plot_il(data, leg = None):
     """ Compares Data from experiments and plots it in one Figure.
     
     Expect: numpy Matrix
@@ -227,7 +167,7 @@ def plot_compare_il(data, leg = None):
     res._setting_legend(leg, counter_data)
     plt.grid()
     
-def plot_compare_il_avg(data, leg = None):
+def plot_il_avg(data, leg = None):
     """ Compares Data from experiments and plots it in one Figure
     
     Expect: numpy Matrix
@@ -245,7 +185,7 @@ def plot_compare_il_avg(data, leg = None):
     res._setting_legend(leg, counter_data)
     plt.grid()
     
-def plot_compare_u(data, leg = None):
+def plot_u(data, leg = None):
     """ Compares Data from experiments and plots it in one Figure
     
     Important: always give data in list! also when only 1 data set is used!
@@ -264,11 +204,11 @@ def plot_compare_u(data, leg = None):
         
     
     res._setting_labels('ControlSignal')
-    res._setting_title('Control Signal (DutyCycle')
+    res._setting_title('Control Signal (DutyCycle)')
     res._setting_legend(leg, counter_data)
     plt.grid()   
     
-def plot_compare_all(data, leg = None, title = None):
+def plot_all(data, leg = None, title = None):
     """ Compares Data from experiments and plots it in one Figure
     
     Expect: numpy Matrix
@@ -319,12 +259,13 @@ def save_variable_csv(data_to_save, path = None, file_name = None):
     file name: test.csv (Importand needs .csv)
     Example: save_variable_csv(data_to_save, path =, test.csv = None)
     """       
+    
     if path is None:
         # use this for setting a fixed path
-        path = 'C:\SynBuckConverter-PSpiceFiles'
+        path = r'C:\Users'
     if file_name is None:
         # use this for setting or change a fixed file name
-        file_name = 'test.csv'
+        file_name = 'testq.csv'
         
     if file_name[-4:] != '.csv':
         raise NameError('File_name needs to end with .csv')
@@ -345,4 +286,4 @@ def save_variable_csv(data_to_save, path = None, file_name = None):
             writer.writerow(data)
     
     # Zeigt File an indem Datei Gespeichert wurde
-    print(path + file_name)
+    print(path + '\\' + file_name)
