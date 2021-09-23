@@ -33,6 +33,7 @@ class Commands:
         self.cpu2_observer_enable = 0x16
         self.cpu2_observer_disable = 0x17
         self.cpu2_event_set = 0x18
+        self.cpu2_adc_trim = 0x19
 
 
 class Controllers:
@@ -1630,6 +1631,39 @@ class Interface:
 
         return 0
     
+
+    def cpu2_adc_trim(self):
+        """Gets the trim of ADC.
+
+        Returns
+        -------
+        status : int
+            If trim was received correctly, returns the status as a positive
+            integer. Otherwise, returns a negative integer.
+            
+        """
+        funcname = Interface.cpu2_adc_trim.__name__
+
+        self._flush_serial()
+        
+        cmd = self.cmd.cpu2_adc_trim
+
+        self.ser.send(cmd)
+        data = self.ser.read(cmd)
+
+        if data == []:
+            print('{:}|\tFailed to communicate with CPU1.'.format(funcname))
+            return -1
+        
+        if data[0] == 1:
+            print('{:}|\tCommunicated with CPU1 but CPU2 is unresponsive. Status not read.'.format(funcname))
+            return -2
+
+        trim = serialp.conversions.u8_to_u32(data[1:], msb=True)
+        print('{:}|\tCPU2 trim: {:}'.format(funcname, trim))
+
+        return trim
+
     
     def _flush_serial(self):
         
