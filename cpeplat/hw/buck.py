@@ -29,7 +29,7 @@ class BuckHWM:
         self.sample_time = 1 / f_pwm
         
         self.il_sensor_sensitiviy = 50e-03
-        self.il_sensor_offset = -2.480
+        self.il_sensor_offset = -2.490
         self.il_resistor_gain = 3.9/5.9
         self.il_adc_voltage_gain = 3/4095
         self.u_pwm_gain = (100e6 / f_pwm) - 1
@@ -38,18 +38,18 @@ class BuckHWM:
         self.vin_buck_offset = 0
         self.vin_offset = 0
         self.vout_offset = 0
-        self.vout_buck_offset = 0 
-        self.il_offset = self.il_sensor_offset/self.il_sensor_sensitiviy
-        self.il_avg_offset = self.il_sensor_offset/self.il_sensor_sensitiviy
+        self.vout_buck_offset = 0
+        self.il_offset = -(2.49 / 50e-3 + 2 * 0.1958)
+        self.il_avg_offset = -(2.49 / 50e-3)
         self.u_offset = 0
         
-        self.vin_buck_gain = self.vref_limit/4095
-        self.vin_gain = self.vref_limit/4095
-        self.vout_gain = self.vref_limit/4095
-        #self.vout_buck_gain = self.vref_limit/4095
-        self.vout_buck_gain = 28.875/4095 
-        self.il_gain = self.il_adc_voltage_gain/(self.il_resistor_gain*self.il_sensor_sensitiviy)
-        self.il_avg_gain = self.il_adc_voltage_gain/(self.il_resistor_gain*self.il_sensor_sensitiviy)
+        self.vin_gain = 3 * (16.01 / 1.5822) / 4095
+        self.vin_buck_gain = 3 * (16.01 / 1.5838) / 4095
+        self.vout_gain = 3 * (8.07 / 0.7970) / 4095
+        self.vout_buck_gain = 3 * (8.07 / 0.7970) / 4095
+        #self.il_gain = self.il_adc_voltage_gain/(self.il_resistor_gain*self.il_sensor_sensitiviy)
+        self.il_gain = 3 * (5.9 / 3.9) / 4095 / 50e-3
+        self.il_avg_gain = 3 * (5.9 / 3.9) / 4095 / 50e-3
         self.u_gain = 1/self.u_pwm_gain
 
 
