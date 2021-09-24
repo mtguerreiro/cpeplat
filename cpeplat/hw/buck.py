@@ -270,25 +270,25 @@ class BuckHWM:
 
         # Vin measurements
         self.vin_adc_gain = self.adc_voltage / self.adc_resolution
-        self.vin_sensor_gain = (16.01 / 1.5822)
+        self.vin_sensor_gain = (16 / 1.6588)
         self.vin_gain = self.vin_adc_gain * self.vin_sensor_gain
         self.vin_offset = 0
 
         # Vin_buck measurements
         self.vin_buck_adc_gain = self.adc_voltage / self.adc_resolution
-        self.vin_buck_sensor_gain = (16.01 / 1.5838)
+        self.vin_buck_sensor_gain = (16 / 1.6416)
         self.vin_buck_gain = self.vin_buck_adc_gain * self.vin_buck_sensor_gain
         self.vin_buck_offset = 0
 
         # Vout measurements
         self.vout_adc_gain = self.adc_voltage / self.adc_resolution
-        self.vout_sensor_gain = (8.07 / 0.7970)
+        self.vout_sensor_gain = (5.83 / 0.5927)
         self.vout_gain = self.vout_adc_gain * self.vout_sensor_gain
         self.vout_offset = 0
 
         # Vout_buck measurements
         self.vout_buck_adc_gain = self.adc_voltage / self.adc_resolution
-        self.vout_buck_sensor_gain = (8.07 / 0.7970)
+        self.vout_buck_sensor_gain = (5.83 / 0.6)
         self.vout_buck_gain = self.vout_buck_adc_gain * self.vout_buck_sensor_gain
         self.vout_buck_offset = 0
 
@@ -296,13 +296,13 @@ class BuckHWM:
         self.il_adc_gain = self.adc_voltage / self.adc_resolution
         self.il_sensor_gain = (5.9 / 3.9) / 50e-3
         self.il_gain = self.il_adc_gain * self.il_sensor_gain
-        self.il_offset = -(2.49 / 50e-3 + 2 * 0.1958)
+        self.il_offset = -(2.49 / 50e-3 + 1.4165)
 
         # IL_avg measurements
         self.il_avg_adc_gain = self.adc_voltage / self.adc_resolution
         self.il_avg_sensor_gain = (5.9 / 3.9) / 50e-3
         self.il_avg_gain = self.il_avg_adc_gain * self.il_avg_sensor_gain
-        self.il_avg_offset = -(2.49 / 50e-3)
+        self.il_avg_offset = -(2.49 / 50e-3 + 0.8603)
         
         # Control signal
         self.u_gain = 1 / ((100e6 / f_pwm) - 1)
@@ -368,16 +368,16 @@ class BuckHWDefaultSettings:
     def __init__(self):
 
         # Buffers
-        self.vin_buffer_size = 750
-        self.vin_buck_buffer_size = 750
+        self.vin_buffer_size = 2000
+        self.vin_buck_buffer_size = 2000
 
-        self.il_buffer_size = 750
-        self.vout_buffer_size = 750
+        self.il_buffer_size = 2000
+        self.vout_buffer_size = 2000
 
-        self.il_avg_buffer_size = 750
-        self.vout_buck_buffer_size = 750
+        self.il_avg_buffer_size = 2000
+        self.vout_buck_buffer_size = 2000
 
-        self.u_buffer_size = 750
+        self.u_buffer_size = 2000
 
         # Tripping
         self.vin_trip = 22
@@ -1448,7 +1448,7 @@ class Buck:
                 if status == 0: break
             return -1
 
-        time.sleep(3)
+        time.sleep(5)
 
         while 1:
             status = self.disable_pwm()
