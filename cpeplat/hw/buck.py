@@ -6,6 +6,177 @@ import cpeplat.result as res
 
 class BuckHWM:
     """A class to hold hardware mapping data for the buck platform.
+
+    Here, we list:
+
+    - Input and output GPIO pins
+    - ADCs' indexes for measurements
+    - Gains of voltage and current sensors, as well as control signal
+    - Additional buffers for CPU2
+
+    Parameters
+    ----------
+    f_pwm : int, float
+        PWM frequency, which defines the gain for the control signal. By
+        default, it is 200 kHz.
+
+    Attributes
+    ----------
+    adc_vin : int
+        ADC index corresponding to the measurement of V_in. By default,
+        it is 2 and should reflect the actual index of the C-code.
+
+    adc_vin_buck : int
+        ADC index corresponding to the measurement of V_in_buck. By default,
+        it is 1 and should reflect the actual index of the C-code.
+
+    adc_vout : int
+        ADC index corresponding to the measurement of V_out. By default,
+        it is 3 and should reflect the actual index of the C-code.
+
+    adc_vout_buck : int
+        ADC index corresponding to the measurement of V_out_buck. By default,
+        it is 5 and should reflect the actual index of the C-code.
+
+    adc_il : int
+        ADC index corresponding to the measurement of IL. By default,
+        it is 0 and should reflect the actual index of the C-code.
+
+    adc_il_avg : int
+        ADC index corresponding to the measurement of IL_avg. By default,
+        it is 4 and should reflect the actual index of the C-code.
+
+    cpu2_buffer_u : int
+        CPU2 buffer index for the control signal. By default, it is 0 and
+        should reflect the actual index of the C-code.
+
+    cpu2_buffer_1 : int
+        CPU2 buffer index for an additional CPU2 buffer. By default, it is 1.
+
+    cpu2_buffer_2 : int
+        CPU2 buffer index for an additional CPU2 buffer. By default, it is 2.
+
+    cpu2_buffer_3 : int
+        CPU2 buffer index for an additional CPU2 buffer. By default, it is 3.
+
+    gpio_input_relay : int
+        GPIO of the input relay. By default, it is 8 and should reflect the
+        actual pin to which the relay's driver is connected to.
+
+    gpio_output_relay : int
+        GPIO of the output relay. By default, it is 9 and should reflect the
+        actual pin to which the relay's driver is connected to.
+
+    gpio_fault_enable : int
+        GPIO of the fault switch. By default, it is 10 and should reflect the
+        actual pin to which the switch's driver is connected to.
+
+    adc_resolution : int
+        Range of the ADC. For instance, for 12 bits, the range is 0-4095. By
+        default, it is 4095.
+
+    adc_voltage : float, int
+        Reference voltage of the ADC for conversion. By default, it is 3.
+
+    f_pwm : float, int
+        PWM frequency. By default, it is 200 kHz. Changing this value will not
+        change the switching frequency on the hardware.
+
+    sample_time : float, int
+        The inverse of the PWM frequency.
+
+    vin_adc_gain : float, int
+        Gain for the ADC of the V_in measurement. Usually, the ADC gain is
+        simply (adc_voltage / adc_resolution). This is the default case.
+
+    vin_sensor_gain : float, int
+        Gain of the voltage sensor. This information comes from the hardware.
+        By default, it is (16.01 / 1.5822). This value will not change the
+        gain used by the control algorithm on the hardware, and it is only
+        used here to convert the raw ADC measurements to voltage.
+
+    vin_gain : float, int
+        Total gain of the V_in measurement. It is the ADC gain times the
+        sensor gain. This value will not change the gain used by the control
+        algorithm on the hardware, and it is only used here to convert the
+        raw ADC measurements to voltage.
+
+    vin_offset : float, int
+        Total offset of the V_in measurement. By default, it is 0.
+
+    vin_buck_adc_gain : float, int
+        See :attr:`.vin_adc_gain`.
+
+    vin_buck_sensor_gain : float, int
+        See :attr:`.vin_sensor_gain`.
+
+    vin_buck_gain : float, int
+        See :attr:`.vin_gain`.
+
+    vin_buck_offset : float, int
+        See :attr:`.vin_offset`.
+
+    vout_adc_gain : float, int
+        See :attr:`.vin_adc_gain`.
+
+    vout_sensor_gain : float, int
+        See :attr:`.vin_sensor_gain`.
+
+    vout_gain : float, int
+        See :attr:`.vin_gain`.
+
+    vout_offset : float, int
+        See :attr:`.vin_offset`.
+
+    vout_buck_adc_gain : float, int
+        See :attr:`.vin_adc_gain`.
+
+    vout_buck_sensor_gain : float, int
+        See :attr:`.vin_sensor_gain`.
+
+    vout_buck_gain : float, int
+        See :attr:`.vin_gain`.
+
+    vout_buck_offset : float, int
+        See :attr:`.vin_offset`.
+
+    il_adc_gain : float, int
+        See :attr:`.vin_adc_gain`.
+
+    il_sensor_gain : float, int
+        See :attr:`.vin_sensor_gain`.
+
+    il_gain : float, int
+        See :attr:`.vin_gain`.
+
+    il_offset : float, int
+        See :attr:`.vin_offset`.
+
+    il_avg_adc_gain : float, int
+        See :attr:`.vin_adc_gain`.
+
+    il_avg_sensor_gain : float, int
+        See :attr:`.vin_sensor_gain`.
+
+    il_avg_gain : float, int
+        See :attr:`.vin_gain`.
+
+    il_avg_offset : float, int
+        See :attr:`.vin_offset`.
+
+    u_gain : float,int
+        Gain for the control signal. The hardware saves the control signal as
+        a timer value. This gains converts the timer value to the 0-1 range.
+
+    ref_adc_gain : float, int
+        See :attr:`.vin_adc_gain`.
+
+    ref_sensor_gain : float, int
+        See :attr:`.vin_sensor_gain`.
+
+    ref_gain : float, int
+        See :attr:`.vin_gain`.
+
     """
     def __init__(self, f_pwm=200e3):
         self.adc_vin = 2
@@ -24,49 +195,55 @@ class BuckHWM:
         self.gpio_output_relay = 9
         self.gpio_fault_enable = 10
         
-        self.vref_limit = 30
-        self.adc_Resolution = 4095
+        self.adc_resolution = 4095
+        self.adc_voltage = 3
+
+        self.f_pwm = f_pwm
         self.sample_time = 1 / f_pwm
 
         # Vin measurements
-        self.vin_adc_gain = 3 / 4095
+        self.vin_adc_gain = self.adc_voltage / self.adc_resolution
         self.vin_sensor_gain = (16.01 / 1.5822)
         self.vin_gain = self.vin_adc_gain * self.vin_sensor_gain
         self.vin_offset = 0
 
         # Vin_buck measurements
-        self.vin_buck_adc_gain = 3 / 4095
+        self.vin_buck_adc_gain = self.adc_voltage / self.adc_resolution
         self.vin_buck_sensor_gain = (16.01 / 1.5838)
         self.vin_buck_gain = self.vin_buck_adc_gain * self.vin_buck_sensor_gain
         self.vin_buck_offset = 0
 
         # Vout measurements
-        self.vout_adc_gain = 3 / 4095
+        self.vout_adc_gain = self.adc_voltage / self.adc_resolution
         self.vout_sensor_gain = (8.07 / 0.7970)
         self.vout_gain = self.vout_adc_gain * self.vout_sensor_gain
         self.vout_offset = 0
 
         # Vout_buck measurements
-        self.vout_buck_adc_gain = 3 / 4095
+        self.vout_buck_adc_gain = self.adc_voltage / self.adc_resolution
         self.vout_buck_sensor_gain = (16.01 / 1.5838)
         self.vout_buck_gain = self.vout_buck_adc_gain * self.vout_buck_sensor_gain
         self.vout_buck_offset = 0
 
         # IL measurements
-        self.il_adc_gain = 3 / 4095
+        self.il_adc_gain = self.adc_voltage / self.adc_resolution
         self.il_sensor_gain = (5.9 / 3.9) / 50e-3
         self.il_gain = self.il_adc_gain * self.il_sensor_gain
         self.il_offset = -(2.49 / 50e-3 + 2 * 0.1958)
 
         # IL_avg measurements
-        self.il_avg_adc_gain = 3 / 4095
+        self.il_avg_adc_gain = self.adc_voltage / self.adc_resolution
         self.il_avg_sensor_gain = (5.9 / 3.9) / 50e-3
         self.il_avg_gain = self.il_avg_adc_gain * self.il_avg_sensor_gain
         self.il_avg_offset = -(2.49 / 50e-3)
         
         # Control signal
-        self.u_pwm_gain = (100e6 / f_pwm) - 1
-        self.u_gain = 1 / self.u_pwm_gain
+        self.u_gain = 1 / ((100e6 / f_pwm) - 1)
+
+        # Reference signal
+        self.ref_adc_gain = self.adc_voltage / self.adc_resolution
+        self.ref_sensor_gain = 10
+        self.ref_gain = self.ref_adc_gain * self.ref_sensor_gain
 
 
 class BuckControllerTypes:
@@ -495,13 +672,11 @@ class Buck:
         if type(ref) is not int and type(ref) is not float:
             raise TypeError('`ref` must be of `int` or `float` type.')
 
-        if ref > self.hwm.vref_limit or ref < 0:
-            raise ValueError('`ref` must be a value between 0 and ' + str(self.hwm.vref_limit) + '.')         
-         
-        # Get Reference from 0 -30 V  to 0 - 4095
-        ref_adc = ref * (4095/self.hwm.vref_limit);
-        ref_adc = round(ref_adc); #Getting Integer Value
+        ref_limit = self.hwm.ref_gain * self.hwm.adc_resolution
+        if ref > ref_limit or ref < 0:
+            raise ValueError('`ref` must be a value between 0 and ' + str(ref_limit) + '.')         
         
+        ref_adc = round(ref / self.hwm.vin_gain)
         
         status = self.plat.cpu2_ref_set(ref_adc)
         

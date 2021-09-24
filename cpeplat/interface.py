@@ -37,26 +37,249 @@ class Commands:
 
 
 class Controllers:
-    """Just a list with the controllers accepted by the platform.
+    """Controllers accepted by the platform.
+
+    Each controller must also be defined in hardware, with the right index.
+    When parameters are sent to the hardware, the order must also be correct.
+
+    Attributes
+    ----------
+    controllers : dict
+        A dictionary where each key is a string with the name of the
+        controller and the value is a list with the hardware index and the
+        set function.
+    
     """
     def __init__(self):
-        self.none = 0
-        self.open_loop = 1
-        self.pid = 2
-        self.sfb = 3
-        self.matlab = 4
-        self.dmpc = 5
 
+        ctl = {'none':  {'set': self.none,   'mode': 0},
+               'ol':    {'set': self.ol,     'mode': 1},
+               'pid':   {'set': self.pid,    'mode': 2},
+               'sfb':   {'set': self.sfb,    'mode': 3},
+               'matlab':{'set': self.matlab, 'mode': 4},
+               'dmpc':  {'set': self.dmpc,   'mode': 5}
+               }
+        
+        self.controllers = ctl
+
+
+    def none(self, params):
+        """Sets none control mode.
+
+        Parameters
+        ----------
+        params : dict
+            Controller parameters.
+
+        Returns
+        -------
+        data : list
+            A list containing the control mode and the controller parameters.
+
+        """
+        # Control mode
+        modei = self.controllers['none']['mode']
+        data = [modei]
+
+        return data
+    
+            
+    def ol(self, params):
+        """Sets open-loop control mode.
+
+        Parameters
+        ----------
+        params : dict
+            Controller parameters.
+
+        Returns
+        -------
+        data : list
+            A list containing the control mode and the controller parameters.
+
+        Raises
+        ------
+        TypeError
+            Raises TypeError if `u` is not of `float` type.
+            
+        ValueError
+            Raises ValueError if `u` is not a value between 0 and 1.
+        
+        """
+        # Control mode
+        modei = self.controllers['ol']['mode']
+        data = [modei]
+
+        u = params['u']
+        
+        if type(u) is not float:
+            raise TypeError('In `ol` mode, `u` must be of float type.')
+
+        if u > 1 or u < 0:
+            raise ValueError('In `ol` mode, `u` must be between 0 and 1.')
+        
+        u_hex = list(struct.pack('f', u))[::-1]
+        data.extend(u_hex)
+
+        return data
+
+
+    def pid(self, params):
+        """Sets pid control mode.
+
+        Parameters
+        ----------
+        params : dict
+            Controller parameters.
+
+        Returns
+        -------
+        data : list
+            A list containing the control mode and the controller parameters.
+
+        Raises
+        ------
+        TypeError
+            Raises TypeError if any of the gains are not of `float` or `int`
+            type.
+            
+        """
+        # Control mode
+        modei = self.controllers['pid']['mode']
+        data = [modei]
+
+        a1 = params['a1']
+        a2 = params['a2']
+        b0 = params['b0']
+        b1 = params['b1']
+        b2 = params['b2']
+
+        pid_gains = [a1, a2, b0, b1, b2]
+        for g in pid_gains:
+            if (type(g) is not float) and (type(g) is not int):
+                raise TypeError('In `pid` mode, gains a1, a2, b0, b1 and b2 must be of float type.')
+
+        g_hex = list(struct.pack('f', a1))[::-1]
+        data.extend(g_hex)
+        g_hex = list(struct.pack('f', a2))[::-1]
+        data.extend(g_hex)
+        g_hex = list(struct.pack('f', b0))[::-1]
+        data.extend(g_hex)
+        g_hex = list(struct.pack('f', b1))[::-1]
+        data.extend(g_hex)
+        g_hex = list(struct.pack('f', b2))[::-1]
+        data.extend(g_hex)
+            
+        return data
+    
+
+    def sfb(self, params):
+        """Sets sfb control mode.
+
+        Parameters
+        ----------
+        params : dict
+            Controller parameters.
+
+        Returns
+        -------
+        data : list
+            A list containing the control mode and the controller parameters.
+
+        Raises
+        ------
+        TypeError
+            Raises TypeError if any of the gains are not of `float` or `int`
+            type.
+            
+        """        
+        # Control mode
+        modei = self.controllers['sfb']['mode']
+        data = [modei]
+
+        k_il = params['k_il']
+        k_vc = params['k_vc']
+        k_z = params['k_z']
+        dt = params['dt']
+
+        sfb_params = [k_il, k_vc, k_z, dt]
+        for g in sfb_params:
+            if (type(g) is not float) and (type(g) is not int):
+                raise TypeError('In `sfb` mode, all values must be of either `int` or `float` type.')
+        
+        g_hex = list(struct.pack('f', k_il))[::-1]
+        data.extend(g_hex)
+        g_hex = list(struct.pack('f', k_vc))[::-1]
+        data.extend(g_hex)
+        g_hex = list(struct.pack('f', k_z))[::-1]
+        data.extend(g_hex)
+        g_hex = list(struct.pack('f', dt))[::-1]
+        data.extend(g_hex)
+
+        return data
+    
+
+    def matlab(self, params):
+        """Sets Matlab control mode.
+
+        Parameters
+        ----------
+        params : dict
+            Controller parameters.
+
+        Returns
+        -------
+        data : list
+            A list containing the control mode and the controller parameters.
+
+        """        
+        # Control mode
+        modei = self.controllers['matlab']['mode']
+        data = [modei]
+
+        return data
+    
+
+    def dmpc(self, params):
+        """Sets DMPC control mode.
+
+        Parameters
+        ----------
+        params : dict
+            Controller parameters.
+
+        Returns
+        -------
+        data : list
+            A list containing the control mode and the controller parameters.
+
+        """        
+        # Control mode
+        modei = self.controllers['dmpc']['mode']
+        data = [modei]
+
+        return data
+    
 
 class Observers:
-    """Just a list with the controllers accepted by the platform.
+    """A dictionary with the observers accepted by the platform.
+
+    Each observer must also be defined in hardware, with the right index.
+
+    Attributes
+    ----------
+    controllers : dict
+        A dictionary where each key is a string with the name of the
+        observer and the value is the hardware index.
+    
     """
     def __init__(self):
-        self.none = 0
-        self.open_loop = 1
-        self.pid = 2
-        self.sfb = 3
-        self.matlab = 4
+
+        obs = {'none': 0,
+               'luenberger': 1,
+               'cimini': 2,
+               'predictive': 3,
+               }
 
 
 class Interface:
@@ -747,25 +970,12 @@ class Interface:
         TypeError
             If `mode` is not of `str` type.
 
+        ValueError
+            If `mode` is not one of the possible controllers.
+
         TypeError
             If `params` is not of `dict` type.
-            
-        TypeError
-            If control mode is `ol`, raises TypeError if `u` is not of
-            `float` type.
-
-        ValueError
-            If control mode is `ol`, raises ValueError if `u` is not a
-            value between 0 and 1.
-
-        TypeError
-            If control mode is `pid`, raises TypeError if any of the gains are
-            not of `float` or `int` type.
-
-        TypeError
-            If control mode is `sfb`, raises TypeError if any of the gains are
-            not of `float` or `int` type.
-            
+                    
         """
         funcname = Interface.cpu2_control_mode_set.__name__
         
@@ -779,95 +989,16 @@ class Interface:
         if type(params) is not dict:
             raise TypeError('`params` must be of `dict` type.')
 
-        if mode == 'none':
-            modei = self.controllers.none
-            
-            # Control mode
-            data = [modei]
-            
-        elif mode == 'ol':
-            modei = self.controllers.open_loop
-            u = params['u']
-            
-            if type(u) is not float:
-                raise TypeError('In `ol` mode, `u` must be of float type.')
+        if mode not in self.controllers.controllers:
+            raise ValueError('Control mode not recognized.')
 
-            if u > 1 or u < 0:
-                raise ValueError('In `ol` mode, `u` must be between 0 and 1.')
-            
-            # Control mode
-            data = [modei]
+        data = self.controllers.controllers[mode]['set'](params)
 
-            u_hex = list(struct.pack('f', u))[::-1]
-            data.extend(u_hex)
-            
-        elif mode == 'pid':
-            modei = self.controllers.pid
-            a1 = params['a1']
-            a2 = params['a2']
-            b0 = params['b0']
-            b1 = params['b1']
-            b2 = params['b2']
-
-            pid_gains = [a1, a2, b0, b1, b2]
-            for g in pid_gains:
-                if (type(g) is not float) and (type(g) is not int):
-                    raise TypeError('In `pid` mode, gains a1, a2, b0, b1 and b2 must be of float type.')
-            
-            # Control mode 
-            data = [modei]
-
-            g_hex = list(struct.pack('f', a1))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', a2))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', b0))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', b1))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', b2))[::-1]
-            data.extend(g_hex)
-
-        elif mode == 'sfb':
-            modei = self.controllers.sfb
-            
-            k_il = params['k_il']
-            k_vc = params['k_vc']
-            k_z = params['k_z']
-            dt = params['dt']
-
-            sfb_params = [k_il, k_vc, k_z, dt]
-            for g in sfb_params:
-                if (type(g) is not float) and (type(g) is not int):
-                    raise TypeError('In `sfb` mode, all values must be of either `int` or `float` type.')
-
-            # Control mode 
-            data = [modei]
-            
-            g_hex = list(struct.pack('f', k_il))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', k_vc))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', k_z))[::-1]
-            data.extend(g_hex)
-            g_hex = list(struct.pack('f', dt))[::-1]
-            data.extend(g_hex)
-
-        elif mode == 'matlab':    
-            modei = self.controllers.matlab
-            
-            # Control mode 
-            data = [modei]
-
-        elif mode == 'dmpc':
-            modei = self.controllers.dmpc
-
-            # Control mode 
-            data = [modei]
-            
-        else:
-            print('Mode not recognized')
-            return -1
+        # `mode` is the controller index on hardware, and it is the first
+        # element in the `data` list. The controller will send the mode back
+        # when it received the control mode, so we can compare them and check
+        # if the control mode was set properly.
+        modei = data[0]
 
         self.ser.send(cmd, data)
         data = self.ser.read(cmd)
