@@ -32,8 +32,8 @@ the C-code):
 - ADC_B_SOC1 (ADC_B5): IL_avg
 - ADC_C_SOC0 (ADC_C4): V_out_buck
 
-From the :class:`cpe.interface.Interface` class, we can check which ADC index
-corresponds to each ADC. Currently, they are:
+From the :class:`cpeplat.interface.Interface` class, we can check which ADC
+index corresponds to each ADC. Currently, they are:
 
 - ADC 0: IL
 - ADC 1: V_in_buck
@@ -418,10 +418,10 @@ class Buck:
     plat : :class:`cpeplat.interface.Interface`
         Interface with the platform.
 
-    hwm : :class:`cpeplat.hw.BuckHWM`
+    hwm : :class:`cpeplat.hw.buck.BuckHWM`
         Hardware mapping and constants.
 
-    hw_default : :class:`cpeplat.hw.BuckHWDefaultSettings`
+    hw_default : :class:`cpeplat.hw.buck.BuckHWDefaultSettings`
         Default controller settings.
     
     Raises
