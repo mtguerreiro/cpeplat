@@ -27,30 +27,46 @@ class BuckHWM:
         self.vref_limit = 30
         self.adc_Resolution = 4095
         self.sample_time = 1 / f_pwm
-        
-        self.il_sensor_sensitiviy = 50e-03
-        self.il_sensor_offset = -2.490
-        self.il_resistor_gain = 3.9/5.9
-        self.il_adc_voltage_gain = 3/4095
-        self.u_pwm_gain = (100e6 / f_pwm) - 1
-        
-        
-        self.vin_buck_offset = 0
+
+        # Vin measurements
+        self.vin_adc_gain = 3 / 4095
+        self.vin_sensor_gain = (16.01 / 1.5822)
+        self.vin_gain = self.vin_adc_gain * self.vin_sensor_gain
         self.vin_offset = 0
+
+        # Vin_buck measurements
+        self.vin_buck_adc_gain = 3 / 4095
+        self.vin_buck_sensor_gain = (16.01 / 1.5838)
+        self.vin_buck_gain = self.vin_buck_adc_gain * self.vin_buck_sensor_gain
+        self.vin_buck_offset = 0
+
+        # Vout measurements
+        self.vout_adc_gain = 3 / 4095
+        self.vout_sensor_gain = (8.07 / 0.7970)
+        self.vout_gain = self.vout_adc_gain * self.vout_sensor_gain
         self.vout_offset = 0
+
+        # Vout_buck measurements
+        self.vout_buck_adc_gain = 3 / 4095
+        self.vout_buck_sensor_gain = (16.01 / 1.5838)
+        self.vout_buck_gain = self.vout_buck_adc_gain * self.vout_buck_sensor_gain
         self.vout_buck_offset = 0
+
+        # IL measurements
+        self.il_adc_gain = 3 / 4095
+        self.il_sensor_gain = (5.9 / 3.9) / 50e-3
+        self.il_gain = self.il_adc_gain * self.il_sensor_gain
         self.il_offset = -(2.49 / 50e-3 + 2 * 0.1958)
+
+        # IL_avg measurements
+        self.il_avg_adc_gain = 3 / 4095
+        self.il_avg_sensor_gain = (5.9 / 3.9) / 50e-3
+        self.il_avg_gain = self.il_avg_adc_gain * self.il_avg_sensor_gain
         self.il_avg_offset = -(2.49 / 50e-3)
-        self.u_offset = 0
         
-        self.vin_gain = 3 * (16.01 / 1.5822) / 4095
-        self.vin_buck_gain = 3 * (16.01 / 1.5838) / 4095
-        self.vout_gain = 3 * (8.07 / 0.7970) / 4095
-        self.vout_buck_gain = 3 * (8.07 / 0.7970) / 4095
-        #self.il_gain = self.il_adc_voltage_gain/(self.il_resistor_gain*self.il_sensor_sensitiviy)
-        self.il_gain = 3 * (5.9 / 3.9) / 4095 / 50e-3
-        self.il_avg_gain = 3 * (5.9 / 3.9) / 4095 / 50e-3
-        self.u_gain = 1/self.u_pwm_gain
+        # Control signal
+        self.u_pwm_gain = (100e6 / f_pwm) - 1
+        self.u_gain = 1 / self.u_pwm_gain
 
 
 class BuckControllerTypes:
@@ -790,7 +806,7 @@ class Buck:
         adc = self.hwm.adc_vin
         
         #Trip into ADC-Value from Voltage
-        trip = round(trip * self.hwm.adc_Resolution / self.hwm.vref_limit)
+        trip = round(trip / self.hwm.vin_gain)
 
         status = self.plat.cpu2_trip_set(adc, trip)
 
@@ -819,6 +835,8 @@ class Buck:
             print('Error getting the tripping value for Vin. Error code: {:}'.format(trip))
             return -1
 
+        trip = trip * self.hwm.vin_gain
+
         return trip
     
 
@@ -842,7 +860,7 @@ class Buck:
         adc = self.hwm.adc_vin_buck
         
         #Trip into ADC-Value from Voltage
-        trip = round(trip * self.hwm.adc_Resolution / self.hwm.vref_limit)
+        trip = round(trip / self.hwm.vin_buck_gain)
         
         status = self.plat.cpu2_trip_set(adc, trip)
 
@@ -871,6 +889,8 @@ class Buck:
             print('Error getting the tripping value for Vin_buck. Error code: {:}'.format(trip))
             return -1
 
+        trip = trip * self.hwm.vin_buck_gain
+
         return trip
 
 
@@ -894,7 +914,7 @@ class Buck:
         adc = self.hwm.adc_vout
         
         #Trip into ADC-Value from Voltage
-        trip = round(trip * self.hwm.adc_Resolution / self.hwm.vref_limit)
+        trip = round(trip / self.hwm.vout_gain)
         
         status = self.plat.cpu2_trip_set(adc, trip)
 
@@ -923,6 +943,8 @@ class Buck:
             print('Error getting the tripping value for Vout. Error code: {:}'.format(trip))
             return -1
 
+        trip = trip * self.hwm.vout_gain
+
         return trip
 
 
@@ -946,7 +968,7 @@ class Buck:
         adc = self.hwm.adc_vout_buck
         
         #Trip into ADC-Value from Voltage
-        trip = round(trip * self.hwm.adc_Resolution / self.hwm.vref_limit)
+        trip = round(trip / self.hwm.vout_buck_gain)
         
         status = self.plat.cpu2_trip_set(adc, trip)
 
@@ -975,6 +997,8 @@ class Buck:
             print('Error getting the tripping value for Vout_buck. Error code: {:}'.format(trip))
             return -1
 
+        trip = trip * self.hwm.vout_buck_gain
+
         return trip
 
 
@@ -997,7 +1021,7 @@ class Buck:
         """
         adc = self.hwm.adc_il
         
-        trip = round((trip-self.hwm.il_sensor_offset/self.hwm.il_sensor_sensitiviy)/(self.hwm.il_adc_voltage_gain/(self.hwm.il_resistor_gain*self.hwm.il_sensor_sensitiviy)))
+        trip = round((trip - self.hwm.il_offset) / self.hwm.il_gain)
 
         status = self.plat.cpu2_trip_set(adc, trip)
 
@@ -1026,6 +1050,8 @@ class Buck:
             print('Error getting the tripping value for IL. Error code: {:}'.format(trip))
             return -1
 
+        trip = trip * self.hwm.il_gain + self.hwm.il_offset
+
         return trip
 
 
@@ -1048,7 +1074,7 @@ class Buck:
         """
         adc = self.hwm.adc_il_avg
         
-        trip = round((trip-self.hwm.il_sensor_offset/self.hwm.il_sensor_sensitiviy)/(self.hwm.il_adc_voltage_gain/(self.hwm.il_resistor_gain*self.hwm.il_sensor_sensitiviy)))
+        trip = round((trip - self.hwm.il_avg_offset) / self.hwm.il_avg_gain)
         
         status = self.plat.cpu2_trip_set(adc, trip)
 
@@ -1076,6 +1102,8 @@ class Buck:
         if trip < 0:
             print('Error getting the tripping value for IL_avg. Error code: {:}'.format(trip))
             return -1
+
+        trip = trip * self.hwm.il_avg_gain + self.hwm.il_avg_offset
 
         return trip
 
