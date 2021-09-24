@@ -164,9 +164,12 @@ class BuckHWM:
     il_avg_offset : float, int
         See :attr:`.vin_offset`.
 
-    u_gain : float,int
+    u_gain : float, int
         Gain for the control signal. The hardware saves the control signal as
         a timer value. This gains converts the timer value to the 0-1 range.
+
+    u_offset : float, int
+        Offset for the control signal. By default, it is 0.
 
     ref_adc_gain : float, int
         See :attr:`.vin_adc_gain`.
@@ -221,7 +224,7 @@ class BuckHWM:
 
         # Vout_buck measurements
         self.vout_buck_adc_gain = self.adc_voltage / self.adc_resolution
-        self.vout_buck_sensor_gain = (16.01 / 1.5838)
+        self.vout_buck_sensor_gain = (8.07 / 0.7970)
         self.vout_buck_gain = self.vout_buck_adc_gain * self.vout_buck_sensor_gain
         self.vout_buck_offset = 0
 
@@ -239,6 +242,7 @@ class BuckHWM:
         
         # Control signal
         self.u_gain = 1 / ((100e6 / f_pwm) - 1)
+        self.u_offset = 0
 
         # Reference signal
         self.ref_adc_gain = self.adc_voltage / self.adc_resolution
@@ -246,22 +250,56 @@ class BuckHWM:
         self.ref_gain = self.ref_adc_gain * self.ref_sensor_gain
 
 
-class BuckControllerTypes:
-    """ A class which shows all avaiable Control Functions and their shortcuts
-    for calling them. Also defines different list of controllers which can be used
-    for a specific experiment function
-    """
-    
-    def __init__(self):
-        #All avaiable Controller Types
-        self.all = ['ol','matlab','pid','ol','sfb']
-        
-        #All avaiable Controller for function: experiemnt_tuning()
-        self.tuning = ['ol','pid','sfb']
-
-
 class BuckHWDefaultSettings:
     """A class to hold default hardware settings for the buck platform.
+
+    Attributes
+    ----------
+    vin_buffer_size : int
+        Default size of V_in buffer.
+
+    vin_buck_buffer_size : int
+        Default size of V_in_buck buffer.
+
+    vout_buffer_size : int
+        Default size of V_out buffer.
+
+    vout_buck_buffer_size : int
+        Default size of V_out_buck buffer.
+
+    il_buffer_size : int
+        Default size of IL buffer.
+
+    il_avg_buffer_size : int
+        Default size of IL_avg buffer.
+
+    u_buffer_size : int
+        Default size of control buffer.
+
+    vin_trip : int, float
+        Default tripping value for V_in.
+
+    vin_buck_trip : int, float
+        Default tripping value for V_in_buck.
+
+    vout_trip : int, float
+        Default tripping value for V_out.
+
+    vout_buck_trip : int, float
+        Default tripping value for V_out_buck.
+
+    il_trip : int, float
+        Default tripping value for V_in.
+
+    il_avg_buck_trip : int, float
+        Default tripping value for V_in_buck.
+
+    cpu1_blink : int
+        Blinking rate for CPU1's LED.
+
+    cpu2_blink : int
+        Blinking rate for CPU1's LED.
+        
     """
     def __init__(self):
 
@@ -370,8 +408,21 @@ class Buck:
         Communication time-out, in seconds. By default, it is 0.2 s.
 
     f_pwm : float
-        Switching frequency on the platform.
+        Switching frequency on the platform. This value is not sent to the
+        hardware.
 
+    Attributes
+    ----------
+    plat : :class:`cpeplat.interface.Interface`
+        Interface with the platform.
+
+    hwm : :class:`cpeplat.hw.BuckHWM`
+        Hardware mapping and constants.
+
+    hw_default : :class:`cpeplat.hw.BuckHWDefaultSettings`
+        Default controller settings.
+
+    
     Raises
     ------
     ValueError
@@ -388,43 +439,68 @@ class Buck:
 
         hw_default = BuckHWDefaultSettings()
         self.hw_default = hw_default
-        
-        control_types = BuckControllerTypes()
-        self.control_types =control_types
 
         # Initializes ADC/CPU2 buffers
-        plat.cpu1_adc_buffer_set(hwm.adc_vin, hw_default.vin_buffer_size)
-        plat.cpu1_adc_buffer_set(hwm.adc_vin_buck, hw_default.vin_buck_buffer_size)
-        
-        plat.cpu1_adc_buffer_set(hwm.adc_vout, hw_default.vout_buffer_size)
-        plat.cpu1_adc_buffer_set(hwm.adc_vout_buck, hw_default.vout_buck_buffer_size)
-        
-        plat.cpu1_adc_buffer_set(hwm.adc_il, hw_default.il_buffer_size)
-        plat.cpu1_adc_buffer_set(hwm.adc_il_avg, hw_default.il_avg_buffer_size)
+        while plat.cpu1_adc_buffer_set(hwm.adc_vin, hw_default.vin_buffer_size) != 0:
+            print('Error setting CPU1 buffer. Trying again...')
 
-        plat.cpu2_buffer_set(hwm.cpu2_buffer_u, hw_default.u_buffer_size)
-        plat.cpu2_buffer_set(hwm.cpu2_buffer_1, hw_default.u_buffer_size)
-        plat.cpu2_buffer_set(hwm.cpu2_buffer_2, 2 * hw_default.u_buffer_size)
-        plat.cpu2_buffer_set(hwm.cpu2_buffer_3, 2 * hw_default.u_buffer_size)
+        while plat.cpu1_adc_buffer_set(hwm.adc_vin_buck, hw_default.vin_buck_buffer_size) != 0:
+            print('Error setting CPU1 buffer. Trying again...')
+        
+        while plat.cpu1_adc_buffer_set(hwm.adc_vout, hw_default.vout_buffer_size) != 0:
+            print('Error setting CPU1 buffer. Trying again...')
+        
+        while plat.cpu1_adc_buffer_set(hwm.adc_vout_buck, hw_default.vout_buck_buffer_size) != 0:
+            print('Error setting CPU1 buffer. Trying again...')
+        
+        while plat.cpu1_adc_buffer_set(hwm.adc_il, hw_default.il_buffer_size) != 0:
+            print('Error setting CPU1 buffer. Trying again...')
+
+        while plat.cpu1_adc_buffer_set(hwm.adc_il_avg, hw_default.il_avg_buffer_size) != 0:
+            print('Error setting CPU1 buffer. Trying again...')
+
+        while plat.cpu2_buffer_set(hwm.cpu2_buffer_u, hw_default.u_buffer_size) != 0:
+            print('Error setting CPU2 buffer. Trying again...')
+
+        while plat.cpu2_buffer_set(hwm.cpu2_buffer_1, hw_default.u_buffer_size) != 0:
+            print('Error setting CPU2 buffer. Trying again...')
+
+        while plat.cpu2_buffer_set(hwm.cpu2_buffer_2, 2 * hw_default.u_buffer_size) != 0:
+            print('Error setting CPU2 buffer. Trying again...')
+
+        while plat.cpu2_buffer_set(hwm.cpu2_buffer_3, 2 * hw_default.u_buffer_size) != 0:
+            print('Error setting CPU2 buffer. Trying again...')
                 
         # Sets and enable tripping for all ADCs
-        status = 0
-        status = self._set_trip_vin(hw_default.vin_trip)
-        status |= self._set_trip_vin_buck(hw_default.vin_buck_trip)     
-        status |=  self._set_trip_vout(hw_default.vout_trip)
-        status |=  self._set_trip_vout_buck(hw_default.vout_buck_trip)      
-        status |= self._set_trip_il(hw_default.il_trip)
-        status |= self._set_trip_il_avg(hw_default.il_avg_trip)
+        while self._set_trip_vin(hw_default.vin_trip) != 0:
+            print('Error setting Vin trip. Trying again...')
+        while plat.cpu2_trip_enable(hwm.adc_vin) != 0:
+            print('Error enabling Vin trip. Trying again...')
 
-        status |= plat.cpu2_trip_enable(hwm.adc_vin)
-        status |= plat.cpu2_trip_enable(hwm.adc_vin_buck)
-        status |= plat.cpu2_trip_enable(hwm.adc_vout)
-        status |= plat.cpu2_trip_enable(hwm.adc_vout_buck)
-        status |= plat.cpu2_trip_enable(hwm.adc_il)
-        status |= plat.cpu2_trip_enable(hwm.adc_il_avg)
+        while self._set_trip_vin_buck(hw_default.vin_buck_trip) != 0:
+            print('Error setting Vin_buck trip. Trying again...')
+        while plat.cpu2_trip_enable(hwm.adc_vin_buck) != 0:
+            print('Error enabling Vin_buck trip. Trying again...')
 
-        if status != 0:
-            raise ValueError('Error setting the tripping limits for the ADCs. Cannot continue.')
+        while self._set_trip_vout(hw_default.vout_trip) != 0:
+            print('Error setting Vout trip. Trying again...')
+        while plat.cpu2_trip_enable(hwm.adc_vout) != 0:
+            print('Error enabling Vout trip. Trying again...')
+
+        while self._set_trip_vout_buck(hw_default.vout_buck_trip) != 0:
+            print('Error setting Vout_buck trip. Trying again...')
+        while plat.cpu2_trip_enable(hwm.adc_vout_buck) != 0:
+            print('Error enabling Vout_buck trip. Trying again...')
+
+        while self._set_trip_il(hw_default.il_trip) != 0:
+            print('Error setting IL trip. Trying again...')
+        while plat.cpu2_trip_enable(hwm.adc_il) != 0:
+            print('Error enabling IL trip. Trying again...')
+            
+        while self._set_trip_il_avg(hw_default.il_avg_trip) != 0:
+            print('Error setting IL_avg trip. Trying again...')
+        while plat.cpu2_trip_enable(hwm.adc_il_avg) != 0:
+            print('Error enabling IL_avg trip. Trying again...')
 
         # Changes blinking rate for fun
         plat.cpu1_blink(hw_default.cpu1_blink)
@@ -676,7 +752,7 @@ class Buck:
         if ref > ref_limit or ref < 0:
             raise ValueError('`ref` must be a value between 0 and ' + str(ref_limit) + '.')         
         
-        ref_adc = round(ref / self.hwm.vin_gain)
+        ref_adc = round(ref / self.hwm.ref_gain)
         
         status = self.plat.cpu2_ref_set(ref_adc)
         
@@ -1283,7 +1359,7 @@ class Buck:
         return trip
 
 
-    def experiment(self, ref, control, params, obs=None, obs_params=None):
+    def experiment(self, ref, control, params={}, obs=None, obs_params={}):
         """Runs an experiment.
 
         The experiment consists of setting control mode, closing the
@@ -1291,6 +1367,24 @@ class Buck:
         disabling the PWM and opening the input/output relays.
 
         Data from the experiment is then returned.
+
+        Parameters
+        ----------
+        ref : float, int
+            Reference.
+
+        control : str
+            Control mode.
+
+        params : dict
+            Controller parameters.
+
+        obs : str, NoneType
+            Observer mode. If `None`, observer is not set. By default, it is
+            `None`.
+
+        obs_params : dict
+            Observer parameters.
 
         Returns
         -------
@@ -1300,6 +1394,9 @@ class Buck:
             
         """
         status = self.set_reference(ref)
+        if status != 0:
+            print('Could not set reference. Aborting experiment.')
+            return -1            
         
         status = self.set_control_mode(control, params)
         if status != 0:
@@ -1309,7 +1406,16 @@ class Buck:
         if obs is not None:
             status = self.set_observer_mode(obs, obs_params)
             if status != 0:
-                print('Could not set control mode. Aborting experiment.')
+                print('Could not set observer mode. Aborting experiment.')
+                return -1
+            status = self.enable_observer()
+            if status != 0:
+                print('Could not enable observer. Aborting experiment.')
+                return -1
+        else:
+            status = self.disable_observer()
+            if status != 0:
+                print('Could not disable observer. Aborting experiment.')
                 return -1
         
         status = self.enable_input_relay()
@@ -1396,137 +1502,169 @@ class Buck:
             if type(u) is not int: break
             print('Could not read u buffer... trying again.')
             
-        #Creating time Vector: 
-        # t in mili seconds
-        SampleList = list(range(0,len(vout)));
-        t = [element *self.hwm.sample_time*1000 for element in SampleList];
-        t = np.array(t) # t in mili seconds
+        # Creates time vector (mili seconds)
+        t = self.hwm.sample_time * np.arange(vin.shape[0]) / 1e-3
 
         data = [t, vin, vin_buck, vout, vout_buck, il, il_avg, u]
 
         return data
+    
             
     def experiment_tuning(self, ref, control, params, obs=None, obs_params=None):
-            """Runs several experiment in a row with a set Control and different 
-            Parameter-Sets which were given in a list.
-    
-            The experiment consists of setting control mode, closing the
-            input/output relays, enabling the PWM for a certain amount of time,
-            disabling the PWM and opening the input/output relays.
-    
-            Data from all the experiments is then returned.
-            So that the different Parameter-Sets can be compared.
-    
-            Returns
-            -------
-            data or status : list or int
-                If no errors occurred during the experiment, data from the ADCs
-                is returned. Otherwise, returns -1.
-            
-            Raises
-            ------
-            NameError:
-                If `mode` is not of Type ('pid', 'ol' or 'sfb'.)
-    
-            TypeError
-                If `params` is not of `dict` type.
-                
-            """
-            
-            #Error Checking: Not supported Control                
-            if control not in self.control_types.tuning:
-                if control == 'matlab':
-                    raise NameError('Tuning of External Matlab Control currently not supported!')
-                else:
-                    raise NameError('Unknwon Control Mode!')
-                    
-            #Starting Tuning Experiment      
-            data = []
-            leg = []
-            for para_set in params:
-                data.append(self.experiment(ref,control,para_set, obs, obs_params))
-                
-            if control == 'ol':
-                title = 'Compare Different OpenLoop Tunings'
-                for para_set in params:
-                    leg.append('u = ' + str(round(para_set['u'],3)))
-            elif control == 'pid':
-                title = 'Compare Different PID Tunings'
-                counter = 0
-                for para_set in params:
-                    leg.append('PID '+ str(counter+1))
-                    counter = counter + 1
-            elif control == 'sfb':
-                title = 'Compare Different State Feedback Controller'
-                counter = 0
-                for para_set in params:
-                    leg.append('SFB '+ str(counter+1))
-                    counter = counter + 1
-                        
-                        # Plotting Plot of Different Tunings
-            res.plot_compare_all(data, leg = leg, title = title)
-                                           
-            return data
-
-
-    def experiment_compare(self, ref, controllers, params, leg = None, title = None, obs=None, obs_params=None):
-            """Runs several experiment in a row with different Controllers
-            and compares the result
-    
-            The experiment consists of setting control mode, closing the
-            input/output relays, enabling the PWM for a certain amount of time,
-            disabling the PWM and opening the input/output relays.
-    
-            Data from all the experiments is then returned.
-            So that the different Parameter-Sets can be compared.
-    
-            Returns
-            -------
-            data or status : list or int
-                If no errors occurred during the experiment, data from the ADCs
-                is returned. Otherwise, returns -1.
-            
-            Raises
-            ------
-            NameError:
-                If `mode` is not of Type ('pid', 'ol' or 'sfb'.)
-    
-            TypeError
-                If `params` is not of `dict` type.
-                
-            """
-            # Checking for valid Control Type
-            control_counter = 0
-            data = []
-            
-            for control in controllers:
-            #Error Checking: Not supported Control                
-                if control not in self.control_types.all:
-                    if control == 'matlab':
-                        raise NameError('Unknwon Control Mode!')
-                    
-            #Starting Tuning Experiment      
-                data.append(self.experiment(ref, control, params[control_counter], obs, obs_params))
-                control_counter = control_counter + 1
-            
-            if leg is None:
-                leg = controllers
-
-                       
-            # Plotting Plot of Different Tunings
-            res.plot_compare_all(data, leg = leg, title = title)
-                                           
-            return data            
-
-
-    def experiment_dmpc(self, ref, control, params, obs=None, obs_params=None, event=False, event_params={}):
-        """Runs an experiment.
+        """Runs several experiment in a row with a set Control and different 
+        Parameter-Sets which were given in a list.
 
         The experiment consists of setting control mode, closing the
         input/output relays, enabling the PWM for a certain amount of time,
         disabling the PWM and opening the input/output relays.
 
-        Data from the experiment is then returned.
+        Data from all the experiments is then returned.
+        So that the different Parameter-Sets can be compared.
+
+        Returns
+        -------
+        data or status : list or int
+            If no errors occurred during the experiment, data from the ADCs
+            is returned. Otherwise, returns -1.
+        
+        Raises
+        ------
+        NameError:
+            If `mode` is not of Type ('pid', 'ol' or 'sfb'.)
+
+        TypeError
+            If `params` is not of `dict` type.
+            
+        """
+        control_types_tuning = ['ol','pid','sfb']
+        #Error Checking: Not supported Control                
+        if control not in control_types_tuning:
+            if control == 'matlab':
+                raise NameError('Tuning of External Matlab Control currently not supported!')
+            else:
+                raise NameError('Unknwon Control Mode!')
+                
+        #Starting Tuning Experiment      
+        data = []
+        leg = []
+        for para_set in params:
+            data.append(self.experiment(ref,control,para_set, obs, obs_params))
+            
+        if control == 'ol':
+            title = 'Compare Different OpenLoop Tunings'
+            for para_set in params:
+                leg.append('u = ' + str(round(para_set['u'],3)))
+        elif control == 'pid':
+            title = 'Compare Different PID Tunings'
+            counter = 0
+            for para_set in params:
+                leg.append('PID '+ str(counter+1))
+                counter = counter + 1
+        elif control == 'sfb':
+            title = 'Compare Different State Feedback Controller'
+            counter = 0
+            for para_set in params:
+                leg.append('SFB '+ str(counter+1))
+                counter = counter + 1
+                    
+                    # Plotting Plot of Different Tunings
+        res.plot_compare_all(data, leg = leg, title = title)
+                                       
+        return data
+
+
+    def experiment_compare(self, ref, controllers, params, leg = None, title = None, obs=None, obs_params=None):
+        """Runs several experiment in a row with different Controllers
+        and compares the result
+
+        The experiment consists of setting control mode, closing the
+        input/output relays, enabling the PWM for a certain amount of time,
+        disabling the PWM and opening the input/output relays.
+
+        Data from all the experiments is then returned.
+        So that the different Parameter-Sets can be compared.
+
+        Returns
+        -------
+        data or status : list or int
+            If no errors occurred during the experiment, data from the ADCs
+            is returned. Otherwise, returns -1.
+        
+        Raises
+        ------
+        NameError:
+            If `mode` is not of Type ('pid', 'ol' or 'sfb'.)
+
+        TypeError
+            If `params` is not of `dict` type.
+            
+        """
+        # Checking for valid Control Type
+        control_counter = 0
+        data = []
+        control_types_all = ['ol','matlab','pid','ol','sfb']
+        
+        for control in controllers:
+        #Error Checking: Not supported Control                
+            if control not in control_types_all:
+                if control == 'matlab':
+                    raise NameError('Unknwon Control Mode!')
+                
+        #Starting Tuning Experiment      
+            data.append(self.experiment(ref, control, params[control_counter], obs, obs_params))
+            control_counter = control_counter + 1
+        
+        if leg is None:
+            leg = controllers
+
+                   
+        # Plotting Plot of Different Tunings
+        res.plot_compare_all(data, leg = leg, title = title)
+                                       
+        return data            
+
+
+    def experiment_disturbance(self, ref, control, params={}, obs=None, obs_params={}, event=False, event_params={}):
+        """Runs an experiment, with disturbance.
+
+        This is an experimental function. Be aware.
+
+        The following is executed in sequence:
+
+        - Reference, controller and observer are set.
+        - Event is set.
+        - Input relay is closed.
+        - PWM is enabled.
+        - Stalls for a certain amount of time.
+        - PWM is disabled and relays are opened.
+
+        Notice that the output relay is not closed. The output relay is
+        expected to be closed/opened during the event, which happens on the
+        controller.
+
+        Parameters
+        ----------
+        ref : float, int
+            Reference.
+
+        control : str
+            Control mode.
+
+        params : dict
+            Controller parameters.
+
+        obs : str, NoneType
+            Observer mode. If `None`, observer is not set. By default, it is
+            `None`.
+
+        obs_params : dict
+            Observer parameters.
+
+        event : bool
+            Enables/disables the event. By default, it is `False`.
+
+        event_params : dict            
+            Event parameters.
 
         Returns
         -------
@@ -1536,6 +1674,9 @@ class Buck:
             
         """
         status = self.set_reference(ref)
+        if status != 0:
+            print('Could not set reference. Aborting experiment.')
+            return -1
         
         status = self.set_control_mode(control, params)
         if status != 0:
@@ -1561,7 +1702,7 @@ class Buck:
             gpio = event_params['gpio']
             start = event_params['start']
             stop = event_params['end']
-            status - self.plat.cpu2_event_set(gpio, start, stop)
+            status = self.plat.cpu2_event_set(gpio, start, stop)
             if status != 0:
                 print('Could not set control mode. Aborting experiment.')
                 return -1
@@ -1654,11 +1795,8 @@ class Buck:
             if type(vc_hat) is not int: break
             print('Could not read vc_hat buffer... trying again.')
             
-        #Creating time Vector: 
-        # t in mili seconds
-        SampleList = list(range(0,len(vout)));
-        t = [element *self.hwm.sample_time*1000 for element in SampleList];
-        t = np.array(t) # t in mili seconds
+        # Creates time vector (mili seconds)
+        t = self.hwm.sample_time * np.arange(vin.shape[0]) / 1e-3
 
         data = [t, vin, vin_buck, vout, vout_buck, il, il_avg, u, niter, il_hat, vc_hat]
 
