@@ -45,9 +45,11 @@ class Controllers:
     Attributes
     ----------
     controllers : dict
-        A dictionary where each key is a string with the name of the
-        controller and the value is a list with the hardware index and the
-        set function.
+        A dictionary where each key is a string with the name of the controller
+        and the value is another dictionary. This dictionary contains a `set`
+        key, to which the value is the function that sets the parameters to be
+        sent to the hardware, and a `mode` key, to which its value is the index
+        of the controller on hardware.
     
     """
     def __init__(self):
@@ -268,19 +270,182 @@ class Observers:
 
     Attributes
     ----------
-    controllers : dict
-        A dictionary where each key is a string with the name of the
-        observer and the value is the hardware index.
+    observers : dict
+        A dictionary where each key is a string with the name of the observer
+        and the value is another dictionary. This dictionary contains a `set`
+        key, to which the value is the function that sets the parameters to be
+        sent to the hardware, and a `mode` key, to which its value is the index
+        of the observer on hardware.
     
     """
     def __init__(self):
 
-        obs = {'none': 0,
-               'luenberger': 1,
-               'cimini': 2,
-               'predictive': 3,
+        obs = {'none':          {'set': self.none,      'mode': 0},
+               'luenberger':    {'set': self.luenberger,'mode': 1},
+               'cimini':        {'set': self.cimini,    'mode': 2},
+               'predictive':    {'set': self.predictive,'mode': 3},
                }
+        
+        self.observers = obs
 
+    
+    def none(self, params):
+        """Sets none observer mode.
+
+        Parameters
+        ----------
+        params : dict
+            Observer parameters.
+
+        Returns
+        -------
+        data : list
+            A list containing the observer mode and the observer parameters.
+
+        """
+        # Observer mode
+        modei = self.observers['none']['mode']
+        data = [modei]
+
+        return data
+
+
+    def luenberger(self, params):
+        """Sets the Luenberger observer mode.
+
+        Parameters
+        ----------
+        params : dict
+            Observer parameters.
+
+        Returns
+        -------
+        data : list
+            A list containing the observer mode and the observer parameters.
+
+        Raises
+        ------
+        TypeError
+            Raises TypeError if any of the parameters are not of `float` or
+            `int` type.
+
+        """
+        # Observer mode
+        modei = self.observers['luenberger']['mode']
+        data = [modei]
+
+        a11 = params['a11']
+        a12 = params['a12']
+        a21 = params['a21']
+        a22 = params['a22']
+
+        b11 = params['b11']
+        b12 = params['b12']
+        b21 = params['b21']
+        b22 = params['b22']
+
+        obsparams = [a11, a12, a21, a22, b11, b12, b21, b22]
+        for g in obsparams:
+            if (type(g) is not float) and (type(g) is not int):
+                raise TypeError('In `luenberger` mode, all parameters must be of either `float` or `int` type.')
+
+        for g in obsparams:
+            g_hex = list(struct.pack('f', g))[::-1]
+            data.extend(g_hex)
+        
+        return data
+
+
+    def cimini(self, params):
+        """Sets the Cimini observer mode.
+
+        Parameters
+        ----------
+        params : dict
+            Observer parameters.
+
+        Returns
+        -------
+        data : list
+            A list containing the observer mode and the observer parameters.
+
+        Raises
+        ------
+        TypeError
+            Raises TypeError if any of the parameters are not of `float` or
+            `int` type.
+
+        """
+        # Observer mode
+        modei = self.observers['cimini']['mode']
+        data = [modei]
+
+        a11 = params['a11']
+        a12 = params['a12']
+        b11 = params['b11']
+        
+        a21 = params['a21']
+        a22 = params['a22']
+        a23 = params['a23']
+        a24 = params['a24']
+        a25 = params['a25']
+        a26 = params['a26']
+        
+        obsparams = [a11, a12, b11, a21, a22, a23, a24, a25, a26]
+        for g in obsparams:
+            if (type(g) is not float) and (type(g) is not int):
+                raise TypeError('In `cimini` mode, all parameters must be of either `float` or `int` type.')
+        
+        for g in obsparams:
+            g_hex = list(struct.pack('f', g))[::-1]
+            data.extend(g_hex)
+        
+        return data
+
+
+    def predictive(self, params):
+        """Sets the predictive observer mode.
+
+        Parameters
+        ----------
+        params : dict
+            Observer parameters.
+
+        Returns
+        -------
+        data : list
+            A list containing the observer mode and the observer parameters.
+
+        Raises
+        ------
+        TypeError
+            Raises TypeError if any of the parameters are not of `float` or
+            `int` type.
+
+        """
+        # Observer mode
+        modei = self.observers['predictive']['mode']
+        data = [modei]
+        
+        a11 = params['a11']
+        a12 = params['a12']
+        a21 = params['a21']
+        a22 = params['a22']
+
+        b11 = params['b11']
+        b21 = params['b21']
+
+        obsparams = [a11, a12, a21, a22, b11, b21]
+        for g in obsparams:
+            if (type(g) is not float) and (type(g) is not int):
+                raise TypeError('In `predictive` mode, all parameters must be of either `float` or `int` type.')
+        
+        for g in obsparams:
+            g_hex = list(struct.pack('f', g))[::-1]
+            data.extend(g_hex)
+
+        return data
+    
 
 class Interface:
     """A class to provide an interface to the C2000-based platform.
@@ -333,6 +498,7 @@ class Interface:
         self.ser = serialp.serial.Serial(com, baud, to)
         self.cmd = Commands()
         self.controllers = Controllers()
+        self.observers = Observers()
         
 
     def cpu1_blink(self, t=1000):
@@ -1456,6 +1622,9 @@ class Interface:
         TypeError
             If `mode` is not of `str` type.
 
+        ValueError
+            If `mode` is not recognized.
+
         TypeError
             If `params` is not of `dict` type.
             
@@ -1469,81 +1638,19 @@ class Interface:
         if type(mode) is not str:
             raise TypeError('`mode` must be of `str` type.')
 
+        if mode not in self.observers.observers:
+            raise ValueError('Observer mode not recognized.')
+
         if type(params) is not dict:
             raise TypeError('`params` must be of `dict` type.')
 
-        if mode == 'luenberger':
-            modei = 1
-            a11 = params['a11']
-            a12 = params['a12']
-            a21 = params['a21']
-            a22 = params['a22']
+        data = self.observers.observers[mode]['set'](params)
 
-            b11 = params['b11']
-            b12 = params['b12']
-            b21 = params['b21']
-            b22 = params['b22']
-
-            obsparams = [a11, a12, a21, a22, b11, b12, b21, b22]
-            for g in obsparams:
-                if (type(g) is not float) and (type(g) is not int):
-                    raise TypeError('In `luenberger` mode, all parameters must be of either `float` or `int` type.')
-
-            data = [modei]
-            for g in obsparams:
-                g_hex = list(struct.pack('f', g))[::-1]
-                data.extend(g_hex)
-                
-        elif mode == 'cimini':
-            modei = 2
-            a11 = params['a11']
-            a12 = params['a12']
-            b11 = params['b11']
-            
-            a21 = params['a21']
-            a22 = params['a22']
-            a23 = params['a23']
-            a24 = params['a24']
-            a25 = params['a25']
-            a26 = params['a26']
-            
-            obsparams = [a11, a12, b11, a21, a22, a23, a24, a25, a26]
-            for g in obsparams:
-                if (type(g) is not float) and (type(g) is not int):
-                    raise TypeError('In `cimini` mode, all parameters must be of either `float` or `int` type.')
-            
-            # Observer mode 
-            data = [modei]
-
-            for g in obsparams:
-                g_hex = list(struct.pack('f', g))[::-1]
-                data.extend(g_hex)
-
-        elif mode == 'predictive':
-            modei = 3
-            a11 = params['a11']
-            a12 = params['a12']
-            a21 = params['a21']
-            a22 = params['a22']
-
-            b11 = params['b11']
-            b21 = params['b21']
-
-            obsparams = [a11, a12, a21, a22, b11, b21]
-            for g in obsparams:
-                if (type(g) is not float) and (type(g) is not int):
-                    raise TypeError('In `predictive` mode, all parameters must be of either `float` or `int` type.')
-            
-            # Observer mode 
-            data = [modei]
-
-            for g in obsparams:
-                g_hex = list(struct.pack('f', g))[::-1]
-                data.extend(g_hex)
-        
-        else:
-            print('Mode not recognized')
-            return -1
+        # `mode` is the observer index on hardware, and it is the first
+        # element in the `data` list. The controller will send the mode back
+        # when it receives the observer mode, so we can compare them and check
+        # if the observer mode was set properly.
+        modei = data[0]
 
         self.ser.send(cmd, data)
         data = self.ser.read(cmd)
