@@ -1,3 +1,67 @@
+"""
+Module ``buck``
+===============
+
+This module contains the C2000-buck hardware interface.
+
+Hardware mapping
+----------------
+
+The buck hardware contains 6 analog measurements, two PWM signals and three
+GPIOs. Here, we document how these signals are mapped to the C2000 board.
+
+Analog measurements
+*******************
+
+The analog measurements available are:
+
+- V_in: Input voltage, before input relay.
+- V_in_buck: Input voltage, after input relay.
+- V_out: Output voltage, after output relay.
+- V_out_buck: Output voltage, before output relay.
+- IL: Inductor current.
+- IL_avg: Filtered inductor current.
+
+The ADCs measuring these signals are (this comes from hardware arrangement and
+the C-code):
+
+- ADC_A_SOC0 (ADC_A5): IL
+- ADC_A_SOC1 (ADC_A4): V_in_buck
+- ADC_A_SOC2 (ADC_A1): V_in
+- ADC_B_SOC0 (ADC_B4): V_out
+- ADC_B_SOC1 (ADC_B5): IL_avg
+- ADC_C_SOC0 (ADC_C4): V_out_buck
+
+From the :class:`cpe.interface.Interface` class, we can check which ADC index
+corresponds to each ADC. Currently, they are:
+
+- ADC 0: IL
+- ADC 1: V_in_buck
+- ADC 2: V_in
+- ADC 3: V_out
+- ADC 4: IL_avg
+- ADC 5: V_out_buck
+
+PWM signals
+***********
+
+The buck hardware requires two PWM signals, complementary to each other.
+Currently, the PWM signals from the C2000 board are EPWM4A and EPWM4B.
+
+GPIOs
+*****
+
+The buck hardware has two relays (input and output), and one fault signal. In
+this version, the GPIOs corresponding to each function are initialized in the
+firmware, and the interface only allows setting/resetting these pins.
+
+The GPIOs from the C2000 board connected to these signals are:
+
+- GPIO 8: Input relay
+- GPIO 9: Output relay
+- GPIO 10: Fault enable.
+    
+"""
 import cpeplat as cpe
 import numpy as np
 import time
@@ -334,68 +398,6 @@ class Buck:
     """A class to provide an interface to the buck hardware, via the C2000
     platform.
 
-    Hardware mapping
-    ================
-
-    The buck hardware contains 6 analog measurements, two PWM signals and
-    three GPIOs. Here, we document how these signals are mapped to the C2000
-    board.
-
-    Analog measurements
-    -------------------
-
-    The analog measurements available are:
-
-    - V_in: Input voltage, before input relay.
-    - V_in_buck: Input voltage, after input relay.
-    - V_out: Output voltage, after output relay.
-    - V_out_buck: Output voltage, before output relay.
-    - IL: Inductor current.
-    - IL_avg: Filtered inductor current.
-
-    The ADCs measuring these signals are (this comes from hardware arrangement
-    and the C-code):
-    
-    - ADC_A_SOC0 (ADC_A5): IL
-    - ADC_A_SOC1 (ADC_A4): V_in_buck
-    - ADC_A_SOC2 (ADC_A1): V_in
-    - ADC_B_SOC0 (ADC_B4): V_out
-    - ADC_B_SOC1 (ADC_B5): IL_avg
-    - ADC_C_SOC0 (ADC_C4): V_out_buck
-    
-    From the :class:`cpe.interface.Interface` class, we can check which ADC
-    index corresponds to each ADC. Currently, they are:
-    
-    - ADC 0: IL
-    - ADC 1: V_in_buck
-    - ADC 2: V_in
-    - ADC 3: V_out
-    - ADC 4: IL_avg
-    - ADC 5: V_out_buck
-    
-    PWM signals
-    -----------
-
-    The buck hardware requires two PWM signals, complementary to each other.
-    Currently, the PWM signals from the C2000 board are EPWM4A and EPWM4B.
-
-    GPIOs
-    -----
-
-    The buck hardware has two relays (input and output), and one fault signal.
-    In this version, the GPIOs corresponding to each function are initialized
-    in the firmware, and the interface only allows setting/resetting these
-    pins.
-
-    The GPIOs from the C2000 board connected to these signals are:
-
-    - GPIO 8: Input relay
-    - GPIO 9: Output relay
-    - GPIO 10: Fault enable.
-
-    Class documentation
-    ===================
-
     Parameters
     ----------
     com : str
@@ -421,7 +423,6 @@ class Buck:
 
     hw_default : :class:`cpeplat.hw.BuckHWDefaultSettings`
         Default controller settings.
-
     
     Raises
     ------

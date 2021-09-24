@@ -1,5 +1,9 @@
+__pycache__
 cpeplat.egg-info
 cpeplat/__pycache__
 cpeplat/hw/__pycache__
 cpeplat/plecs/__pycache__
 examples/data
+docs/_build
+docs/_static
+docs/_templates

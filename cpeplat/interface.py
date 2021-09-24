@@ -1,9 +1,45 @@
+"""
+Module ``interface``
+====================
+
+This module contains the C2000 controller interface.
+
+ADC mapping
+-----------
+
+Functions concerning the ADCs always address an SOC. These functions takes an
+index between 0 and `N`, where `N` is the maximum number of SOCs. The indexes
+are mapped to the different SOCs in the following order:
+
+- ADC_A_SOC0: 0
+- ADC_A_SOC1: 1
+- ADC_A_SOC2: 2
+- ADC_B_SOC0: 3
+- ADC_B_SOC1: 4
+- ADC_C_SOC0: 5
+
+For instace, setting the buffer for ADC 2 will set the buffer for ADC_A_SOC2.
+Setting the tripping limit for ADC 4 will set the tripping limit for
+ADC_B_SOC1.
+
+CPU2 buffer
+-----------
+
+The data stored in CPU2's buffer depends on each application. Usually, buffer 0
+will hold the control signal. Ultimately, it is up to the user to set the
+buffers and interpret the data.
+
+GPIOs
+-----
+
+Currently, the interface can set the level of any GPIO. However, initialization
+of the corresponding pin must be done in firmware. The current interface does
+not provide any GPIO initialization.
+
+"""
 import serialp
 import time
 import struct
-
-"""
-"""
 
 class Commands:
     """Just a list with the commands accepted by the platform.
@@ -450,45 +486,13 @@ class Observers:
 class Interface:
     """A class to provide an interface to the C2000-based platform.
 
-    ADC mapping
-    -----------
-
-    Functions concerning the ADCs always address an SOC. These functions
-    takes an index between 0 and `N`, where `N` is the maximum number of SOCs.
-    The indexes are mapped to the different SOCs in the following order:
-
-    - ADC_A_SOC0: 0
-    - ADC_A_SOC1: 1
-    - ADC_A_SOC2: 2
-    - ADC_B_SOC0: 3
-    - ADC_B_SOC1: 4
-    - ADC_C_SOC0: 5
-
-    For instace, setting the buffer for ADC 2 will set the buffer for
-    ADC_A_SOC2. Setting the tripping limit for ADC 4 will set the tripping
-    limit for ADC_B_SOC1.
-
-    CPU2 buffer
-    -----------
-
-    The data stored in CPU2's buffer depends on each application. Usually,
-    buffer 0 will hold the control signal. Ultimately, it is up to the user to
-    set the buffers and interpret the data.
-
-    GPIOs
-    -----
-
-    Currently, the interface can set the level of any GPIO. However,
-    initialization of the corresponding pin must be done in firmware. The
-    current interface does not provide any GPIO initialization.
-
     Parameters
     ----------
     com : str
         COM port.
 
     baud : int
-        Baudrate used for communication. By default, it is 9600 bps.
+        Baudrate used for communication. By default, it is 115200 bps.
 
     timeout : int, float
         Communication time-out, in seconds. By default, it is 0.2 s.

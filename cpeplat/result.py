@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Aug  5 09:16:57 2021
+Module ``result``
+===========================
 
-@author: Moritz Frantz
+This module contains the functions for plotting and saving the data from an experiment.
+
 """
+
+
+
 
 import cpeplat as cpe
 import numpy as np
@@ -49,93 +54,30 @@ def _setting_title(title):
     plt.title(title, fontsize=14)
 
 
+##########-------------- Plot Functions  -------------############
 
-##########-------------- Basic Plot Functions  -------------------############
+def plot_vin(data, leg = None):
+    """Plots input voltage from saved experiment data.
 
-def plot_vin(data):
-        
-    #Expected DataType np.array
-    plt.figure(figsize=(9, 6))
-    plt.plot(data[0],data[1])
-        
-    res._setting_labels('Voltage')
-    res._setting_title('Input Voltage')
-    plt.grid()
-    return
+    Example
+    --------------
+    Code Example for 1 and more data sets.
+          
+    .. code-block:: python
     
-def plot_vin_buck(data):
-
-    #Expected DataType np.array
-    plt.figure(figsize=(9, 6))
-    plt.plot(data[0],data[2])
-        
-    res._setting_labels('Voltage')
-    res._setting_title('Input Voltage Buck')
-    plt.grid()
-    return       
-
-def plot_vout(data):
-        
-    #Expected DataType np.array
-    plt.figure(figsize=(9, 6))
-    plt.plot(data[0],data[3])
-        
-    res._setting_labels('Voltage')
-    res._setting_title('Output Voltage')
-    plt.grid()
-    return
-
-def plot_vout_buck(data):
-        
-    #Expected DataType np.array
-    plt.figure(figsize=(9, 6))
-    plt.plot(data[0],data[4])
-        
-    res._setting_labels('Voltage')
-    res._setting_title('Output Voltage Buck')
-    plt.grid()
-    return
-
-def plot_il(data):
-        
-    #Expected DataType np.array
-    plt.figure(figsize=(9, 6))
-    plt.plot(data[0],data[5])
-        
-    res._setting_labels('Current')
-    res._setting_title('Output Current')
-    plt.grid()
-    return
-
-def plot_il_avg(data):
-        
-    #Expected DataType np.array
-    plt.figure(figsize=(9, 6))
-    plt.plot(data[0],data[6])
-        
-    res._setting_labels('Current')
-    res._setting_title('Output Current Average')
-    plt.grid()
-    return
-
-def plot_u(data):
-        
-    #Expected DataType np.array
-    plt.figure(figsize=(9, 6))
-    plt.plot(data[0],data[7])
-        
-    res._setting_labels('ControlSignal')
-    res._setting_title('Control Signal u')
-    plt.grid()
-    return
-
-##########-------------- Comparision Plot Functions  -------------############
-
-def plot_compare_vin(data, leg = None):
-    """ Compares Data from experiments and plots it in one Figure
+       res.plot_vin([data1],['pid_1']) 
+       res.plot_vin([data1, data2],['pid_1', 'pid_2'])
+       
+    Parameters
+    --------------
     
-    Expect: numpy Matrix
-    Example: plot_compare([data1, data2],['pid_1', 'pid_2'])
+    data : list of lists
+        Saved data from experiments.
+
+    leg : list of strings
+        Generating the naming for the legend.
+        
+       
     """
     
     plt.figure(figsize=(9, 6))
@@ -149,11 +91,28 @@ def plot_compare_vin(data, leg = None):
     res._setting_legend(leg, counter_data)
     plt.grid()
 
-def plot_compare_vin_buck(data, leg = None):
-    """ Compares Data from experiments and plots it in one Figure
+def plot_vin_buck(data, leg = None):
+    """Plots input voltage at buck converter side from saved experiment data.
+
+    Example
+    --------------
+    Code Example for 1 and more data sets.
+          
+    .. code-block:: python
     
-    Expect: numpy Matrix
-    Example: plot_compare([data1, data2],['pid_1', 'pid_2'])
+        res.plot_vin_buck([data1],['pid_1']) 
+        res.plot_vin_buck([data1, data2],['pid_1', 'pid_2'])
+       
+    Parameters
+    --------------
+    
+    data : list of lists
+        Saved data from experiments.
+
+    leg : list of strings
+        Generating the naming for the legend.
+        
+       
     """
     
     plt.figure(figsize=(9, 6))
@@ -167,11 +126,28 @@ def plot_compare_vin_buck(data, leg = None):
     res._setting_legend(leg, counter_data)
     plt.grid()
     
-def plot_compare_vout(data, leg = None):
-    """ Compares Data from experiments and plots it in one Figure
+def plot_vout(data, leg = None):
+    """Plots output voltage from saved experiment data.
+
+    Example
+    --------------
+    Code Example for 1 and more data sets.
+          
+    .. code-block:: python
     
-    Expect: numpy Matrix
-    Example: plot_compare([data1, data2],['pid_1', 'pid_2'])
+        res.plot_vout([data1],['pid_1']) 
+        res.plot_vout([data1, data2],['pid_1', 'pid_2'])
+       
+    Parameters
+    --------------
+    
+    data : list of lists
+        Saved data from experiments.
+
+    leg : list of strings
+        Generating the naming for the legend.
+        
+       
     """
     
     plt.figure(figsize=(9, 6))
@@ -186,11 +162,28 @@ def plot_compare_vout(data, leg = None):
     plt.grid()
 
     
-def plot_compare_vout_buck(data, leg = None):
-    """ Compares Data from experiments and plots it in one Figure
+def plot_vout_buck(data, leg = None):
+    """Plots outout voltage at buck converter side (before Load) from saved experiment data.
+
+    Example
+    --------------
+    Code Example for 1 and more data sets.
+          
+    .. code-block:: python
     
-    Expect: numpy Matrix
-    Example: plot_compare([data1, data2],['pid_1', 'pid_2'])
+        res.plot_vout_buck([data1],['pid_1']) 
+        res.plot_vout_buck([data1, data2],['pid_1', 'pid_2'])
+       
+    Parameters
+    --------------
+    
+    data : list of lists
+        Saved data from experiments.
+
+    leg : list of strings
+        Generating the naming for the legend.
+        
+       
     """
     
     plt.figure(figsize=(9, 6))
@@ -204,11 +197,28 @@ def plot_compare_vout_buck(data, leg = None):
     res._setting_legend(leg, counter_data)    
     plt.grid()
     
-def plot_compare_il(data, leg = None):
-    """ Compares Data from experiments and plots it in one Figure.
+def plot_il(data, leg = None):
+    """Plots inductance current from saved experiment data.
+
+    Example
+    --------------
+    Code Example for 1 and more data sets.
+          
+    .. code-block:: python
     
-    Expect: numpy Matrix
-    Example: plot_compare([data1, data2],['pid_1', 'pid_2'])
+        res.plot_il([data1],['pid_1']) 
+        res.plot_il([data1, data2],['pid_1', 'pid_2'])
+       
+    Parameters
+    --------------
+    
+    data : list of lists
+        Saved data from experiments.
+
+    leg : list of strings
+        Generating the naming for the legend.
+        
+       
     """
     
     plt.figure(figsize=(9, 6))
@@ -222,11 +232,28 @@ def plot_compare_il(data, leg = None):
     res._setting_legend(leg, counter_data)
     plt.grid()
     
-def plot_compare_il_avg(data, leg = None):
-    """ Compares Data from experiments and plots it in one Figure
+def plot_il_avg(data, leg = None):
+    """Plots average inductance current from saved experiment data.
+
+    Example
+    --------------
+    Code Example for 1 and more data sets.
+          
+    .. code-block:: python
     
-    Expect: numpy Matrix
-    Example: plot_compare([data1, data2])
+        res.plot_il_avg([data1],['pid_1']) 
+        res.plot_il_avg([data1, data2],['pid_1', 'pid_2'])
+       
+    Parameters
+    --------------
+    
+    data : list of lists
+        Saved data from experiments.
+
+    leg : list of strings
+        Generating the naming for the legend.
+        
+       
     """
     
     plt.figure(figsize=(9, 6))
@@ -240,13 +267,28 @@ def plot_compare_il_avg(data, leg = None):
     res._setting_legend(leg, counter_data)
     plt.grid()
     
-def plot_compare_u(data, leg = None):
-    """ Compares Data from experiments and plots it in one Figure
+def plot_u(data, leg = None):
+    """Plots control signal (Duty Cycle) from saved experiment data.
+
+    Example
+    --------------
+    Code Example for 1 and more data sets.
+          
+    .. code-block:: python
     
-    Important: always give data in list! also when only 1 data set is used!
-    Example: plot_compare([data1], ['pid'])
-    Example: plot_compare([data1, data2],['pid_1', 'pid_2'])
-    Expect: numpy Matrix
+        res.plot_u([data1],['pid_1']) 
+        res.plot_u([data1, data2],['pid_1', 'pid_2'])
+       
+    Parameters
+    --------------
+    
+    data : list of lists
+        Saved data from experiments.
+
+    leg : list of strings
+        Generating the naming for the legend.
+        
+       
     """
     if len(data) == 1:
         print('yes')
@@ -259,15 +301,35 @@ def plot_compare_u(data, leg = None):
         
     
     res._setting_labels('ControlSignal')
-    res._setting_title('Control Signal (DutyCycle')
+    res._setting_title('Control Signal (DutyCycle)')
     res._setting_legend(leg, counter_data)
     plt.grid()   
     
-def plot_compare_all(data, leg = None, title = None):
-    """ Compares Data from experiments and plots it in one Figure
+def plot_all(data, leg = None, title = None):
+    """Plots output voltage, inductance current and control signal from saved experiment data.
+
+    Example
+    --------------
+    Code Example for 1 and more data sets.
+          
+    .. code-block:: python
     
-    Expect: numpy Matrix
-    Example: plot_compare([data1, data2],['pid_1', 'pid_2'])
+       res.plot_all([data1],['pid_1']) 
+       res.plot_all([data1, data2],['pid_1', 'pid_2'], 'Comparision Cascaded and PID Control')
+       
+    Parameters
+    --------------
+    
+    data : list of lists
+        Saved data from experiments.
+
+    leg : list of strings
+        Generating the naming for the legend.
+        
+    title : str
+        Title for the plot.
+        
+       
     """
     
     plt.figure(figsize=(16, 9))
@@ -308,18 +370,37 @@ def plot_compare_all(data, leg = None, title = None):
     
     
 def save_variable_csv(data_to_save, path = None, file_name = None):
-    """ Saves Data given as an input in a csv file.
+    """Saves data from an experiment in a csv-file.
+
+    Example
+    --------------
+    Important: Place a 'r' before the 'path' string and file name needs to end with .csv
+          
+    .. code-block:: python
     
-    Expect: List, Numpyarray
-    file name: test.csv (Importand needs .csv)
-    Example: save_variable_csv(data_to_save, path =, test.csv = None)
-    """       
+        res.save_variable_csv(data,r'path','file_name.csv') 
+       
+    Parameters
+    --------------
+    
+    data : list of lists
+        Saved data from experiments.
+
+    path : raw string 
+        Path to the saving location.
+    
+    file_name : str
+        file name with .csv at the end.
+        
+       
+    """    
+    
     if path is None:
         # use this for setting a fixed path
-        path = 'C:\SynBuckConverter-PSpiceFiles'
+        path = r'C:\Users'
     if file_name is None:
         # use this for setting or change a fixed file name
-        file_name = 'test.csv'
+        file_name = 'testq.csv'
         
     if file_name[-4:] != '.csv':
         raise NameError('File_name needs to end with .csv')
@@ -340,4 +421,4 @@ def save_variable_csv(data_to_save, path = None, file_name = None):
             writer.writerow(data)
     
     # Zeigt File an indem Datei Gespeichert wurde
-    print(path + file_name)
+    print(path + '\\' + file_name)
