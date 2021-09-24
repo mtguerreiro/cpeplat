@@ -8,12 +8,12 @@ class BuckHWM:
     """A class to hold hardware mapping data for the buck platform.
     """
     def __init__(self, f_pwm=200e3):
-        self.adc_vin = 0
+        self.adc_vin = 2
         self.adc_vin_buck = 1
-        self.adc_il = 2
         self.adc_vout = 3
-        self.adc_il_avg = 4
         self.adc_vout_buck = 5
+        self.adc_il = 0
+        self.adc_il_avg = 4
         
         self.cpu2_buffer_u = 0
         self.cpu2_buffer_1 = 1
@@ -122,24 +122,25 @@ class Buck:
     - IL: Inductor current.
     - IL_avg: Filtered inductor current.
 
-    The ADCs measuring these signals are:
+    The ADCs measuring these signals are (this comes from hardware arrangement
+    and the C-code):
     
-    - ADC_A1: Vin
-    - ADC_A4: Vin_buck
-    - ADC_A5: IL
-    - ADC_B4: Vout
-    - ADC_B5: IL_avg
-    - ADC_C4: Vout_buck
-
+    - ADC_A_SOC0 (ADC_A5): IL
+    - ADC_A_SOC1 (ADC_A4): V_in_buck
+    - ADC_A_SOC2 (ADC_A1): V_in
+    - ADC_B_SOC0 (ADC_B4): V_out
+    - ADC_B_SOC1 (ADC_B5): IL_avg
+    - ADC_C_SOC0 (ADC_C4): V_out_buck
+    
     From the :class:`cpe.interface.Interface` class, we can check which ADC
     index corresponds to each ADC. Currently, they are:
     
-    - ADC 0: Vin
-    - ADC 1: Vin_buck
-    - ADC 2: IL
-    - ADC 3: Vout
+    - ADC 0: IL
+    - ADC 1: V_in_buck
+    - ADC 2: V_in
+    - ADC 3: V_out
     - ADC 4: IL_avg
-    - ADC 5: Vout_buck
+    - ADC 5: V_out_buck
     
     PWM signals
     -----------

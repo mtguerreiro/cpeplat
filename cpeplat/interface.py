@@ -65,20 +65,20 @@ class Interface:
     ADC mapping
     -----------
 
-    Functions concerning the ADCs index each individual ADC with a number
-    between 0 and `N`, where `N` is the maximum number of ADCs. The ADCs
-    indexes are mapped to the physical ADCs as follows:
+    Functions concerning the ADCs always address an SOC. These functions
+    takes an index between 0 and `N`, where `N` is the maximum number of SOCs.
+    The indexes are mapped to the different SOCs in the following order:
 
-    - ADC 0: ADCIN_A1
-    - ADC 1: ADCIN_A4
-    - ADC 2: ADCIN_A5
-    - ADC 3: ADCIN_B4
-    - ADC 4: ADCIN_B5
-    - ADC 5: ADCIN_C4
+    - ADC_A_SOC0: 0
+    - ADC_A_SOC1: 1
+    - ADC_A_SOC2: 2
+    - ADC_B_SOC0: 3
+    - ADC_B_SOC1: 4
+    - ADC_C_SOC0: 5
 
-    This mapping is valid for all ADC-related settings. For instance, setting
-    the tripping limit for ADC 2 will set the tripping limit for ADC_A5,
-    reading the buffer for ADC 4 will read the buffer of ADC_B5, and so on.
+    For instace, setting the buffer for ADC 2 will set the buffer for
+    ADC_A_SOC2. Setting the tripping limit for ADC 4 will set the tripping
+    limit for ADC_B_SOC1.
 
     CPU2 buffer
     -----------
@@ -93,7 +93,6 @@ class Interface:
     Currently, the interface can set the level of any GPIO. However,
     initialization of the corresponding pin must be done in firmware. The
     current interface does not provide any GPIO initialization.
-    
 
     Parameters
     ----------
