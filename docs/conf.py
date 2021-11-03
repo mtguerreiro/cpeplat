@@ -22,7 +22,7 @@ copyright = '2021, LRS'
 author = 'LRS'
 
 # The full version, including alpha/beta/rc tags
-release = 'v1.0'
+release = 'v1.2'
 
 
 # -- General configuration ---------------------------------------------------

@@ -1703,7 +1703,13 @@ class Buck:
             gpio = event_params['gpio']
             start = event_params['start']
             stop = event_params['end']
-            status = self.plat.cpu2_event_set(gpio, start, stop)
+            if 'gpio2' in event_params:
+                gpio2 = event_params['gpio2']
+                start2 = event_params['start2']
+                stop2 = event_params['end2']
+            else:
+                gpio2 = 0; start2 = 0; stop2 = 0
+            status = self.plat.cpu2_event_set(gpio, start, stop, gpio2, start2, stop2)
             if status != 0:
                 print('Could not set control mode. Aborting experiment.')
                 return -1

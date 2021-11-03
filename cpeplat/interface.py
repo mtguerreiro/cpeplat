@@ -1796,7 +1796,7 @@ class Interface:
         return 0
 
     
-    def cpu2_event_set(self, gpio, start, end):
+    def cpu2_event_set(self, gpio, start, end, gpio2=0, start2=0, end2=0):
         """Sets an event on CPU2.
 
         The GPIO must have been properly initialized, i.e., set as output and
@@ -1848,6 +1848,14 @@ class Interface:
         data.extend(gpio32)
         data.extend(start32)
         data.extend(end32)
+
+        gpio32_2 = serialp.conversions.u32_to_u8(gpio2, msb=True)
+        start32_2 = serialp.conversions.u32_to_u8(start2, msb=True)
+        end32_2 = serialp.conversions.u32_to_u8(end2, msb=True)
+
+        data.extend(gpio32_2)
+        data.extend(start32_2)
+        data.extend(end32_2)
         
         cmd = self.cmd.cpu2_event_set
 
