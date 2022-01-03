@@ -95,7 +95,8 @@ class Controllers:
                'pid':   {'set': self.pid,    'mode': 2},
                'sfb':   {'set': self.sfb,    'mode': 3},
                'matlab':{'set': self.matlab, 'mode': 4},
-               'dmpc':  {'set': self.dmpc,   'mode': 5}
+               'dmpc':  {'set': self.dmpc,   'mode': 5},
+               'fcsvsi':  {'set': self.fcsvsi,   'mode': 6}
                }
         
         self.controllers = ctl
@@ -297,8 +298,29 @@ class Controllers:
         data = [modei]
 
         return data
-    
 
+    
+    def fcsvsi(self, params):
+        """Sets FCS VSI control mode.
+
+        Parameters
+        ----------
+        params : dict
+            Controller parameters.
+
+        Returns
+        -------
+        data : list
+            A list containing the control mode and the controller parameters.
+
+        """        
+        # Control mode
+        modei = self.controllers['fcsvsi']['mode']
+        data = [modei]
+
+        return data
+
+    
 class Observers:
     """A dictionary with the observers accepted by the platform.
 

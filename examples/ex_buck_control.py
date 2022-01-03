@@ -25,20 +25,20 @@ import time
 plt.ion()
 
 # --- Input ---
-COM = 'COM12'
+COM = 'COM14'
 baud = 115200
 to = 3
 
-# --- Creates buck object ---
-buck = cpe.hw.buck.Buck(COM, baud, to)
-
-# --- Sets up data for experiments ---
-# Open-loop data
-ol_params = {'u': 125/499}
-
-# PID data
-pid_params_slow = {'a1':-1.77777, 'a2':0.7777, 'b0':5.756944444444445, 'b1':-11.19999938888889, 'b2':5.445833333333333}
-pid_params_fast = {'a1':-1.63265312, 'a2':0.632653058, 'b0':1.57026279, 'b1':-3.10171938, 'b2':1.53209949}
-
-# SFB data
-sfb_params = {'k_il':0.09098041, 'k_vc':0.23923659, 'k_z':910.8416623140029, 'dt':1/200e3}
+### --- Creates buck object ---
+##buck = cpe.hw.buck.Buck(COM, baud, to)
+##
+### --- Sets up data for experiments ---
+### Open-loop data
+##ol_params = {'u': 125/499}
+##
+### PID data
+##pid_params_slow = {'a1':-1.77777, 'a2':0.7777, 'b0':5.756944444444445, 'b1':-11.19999938888889, 'b2':5.445833333333333}
+##pid_params_fast = {'a1':-1.63265312, 'a2':0.632653058, 'b0':1.57026279, 'b1':-3.10171938, 'b2':1.53209949}
+##
+### SFB data
+##sfb_params = {'k_il':0.09098041, 'k_vc':0.23923659, 'k_z':910.8416623140029, 'dt':1/200e3}
