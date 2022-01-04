@@ -29,6 +29,16 @@ COM = 'COM14'
 baud = 115200
 to = 3
 
+plat = cpe.interface.Interface(COM, baud, to)
+
+plat.cpu2_trip_set(0, 4000); plat.cpu2_trip_set(1, 4000); plat.cpu2_trip_set(2, 4000); plat.cpu2_trip_set(3, 4000); plat.cpu2_trip_set(4, 4000); plat.cpu2_trip_set(5, 4000);
+
+plat.cpu1_adc_buffer_set(0, 500); plat.cpu1_adc_buffer_set(1, 500); plat.cpu1_adc_buffer_set(2, 500); plat.cpu1_adc_buffer_set(3, 500); plat.cpu1_adc_buffer_set(4, 500); plat.cpu1_adc_buffer_set(5, 500)
+
+plat.cpu2_buffer_set(0, 0); plat.cpu2_buffer_set(1, 0); plat.cpu2_buffer_set(2, 2000); plat.cpu2_buffer_set(3, 2000)
+
+plat.cpu2_control_mode_set('fcsvsi', {})
+
 ### --- Creates buck object ---
 ##buck = cpe.hw.buck.Buck(COM, baud, to)
 ##
