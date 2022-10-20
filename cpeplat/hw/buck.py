@@ -368,16 +368,16 @@ class BuckHWDefaultSettings:
     def __init__(self):
 
         # Buffers
-        self.vin_buffer_size = 2000
-        self.vin_buck_buffer_size = 2000
+        self.vin_buffer_size = 750
+        self.vin_buck_buffer_size = 750
 
-        self.il_buffer_size = 2000
-        self.vout_buffer_size = 2000
+        self.il_buffer_size = 750
+        self.vout_buffer_size = 750
 
-        self.il_avg_buffer_size = 2000
-        self.vout_buck_buffer_size = 2000
+        self.il_avg_buffer_size = 750
+        self.vout_buck_buffer_size = 750
 
-        self.u_buffer_size = 2000
+        self.u_buffer_size = 750
 
         # Tripping
         self.vin_trip = 22
@@ -1635,13 +1635,10 @@ class Buck:
         - Reference, controller and observer are set.
         - Event is set.
         - Input relay is closed.
+        - Output relay is closed
         - PWM is enabled.
         - Stalls for a certain amount of time.
         - PWM is disabled and relays are opened.
-
-        Notice that the output relay is not closed. The output relay is
-        expected to be closed/opened during the event, which happens on the
-        controller.
 
         Parameters
         ----------
@@ -1715,6 +1712,11 @@ class Buck:
 
         time.sleep(2)
 
+        status = self.enable_output_relay()
+        if status != 0:
+            print('Could not close output relay. Aborting experiment.')
+            return -1
+        
         status = self.enable_pwm()
         if status != 0:
             print('Could not enable PWM. Aborting experiment.')
