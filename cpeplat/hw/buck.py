@@ -110,6 +110,10 @@ class BuckHWM:
         ADC index corresponding to the measurement of IL_avg. By default,
         it is 4 and should reflect the actual index of the C-code.
 
+    adc_io : int
+        ADC index corresponding to the measurement of IL_avg. By default,
+        it is 6 and should reflect the actual index of the C-code.
+        
     cpu2_buffer_u : int
         CPU2 buffer index for the control signal. By default, it is 0 and
         should reflect the actual index of the C-code.
@@ -228,6 +232,18 @@ class BuckHWM:
     il_avg_offset : float, int
         See :attr:`.vin_offset`.
 
+    io_adc_gain : float, int
+        See :attr:`.vin_adc_gain`.
+
+    io_sensor_gain : float, int
+        See :attr:`.vin_sensor_gain`.
+
+    io_gain : float, int
+        See :attr:`.vin_gain`.
+
+    io_offset : float, int
+        See :attr:`.vin_offset`.
+        
     u_gain : float, int
         Gain for the control signal. The hardware saves the control signal as
         a timer value. This gains converts the timer value to the 0-1 range.
@@ -252,6 +268,7 @@ class BuckHWM:
         self.adc_vout_buck = 5
         self.adc_il = 0
         self.adc_il_avg = 4
+        self.adc_io = 6
         
         self.cpu2_buffer_u = 0
         self.cpu2_buffer_1 = 1
@@ -304,6 +321,12 @@ class BuckHWM:
         self.il_avg_gain = self.il_avg_adc_gain * self.il_avg_sensor_gain
         self.il_avg_offset = -(2.49 / 50e-3 + 0.8603)
         
+        # Io measurements
+        self.io_adc_gain = self.adc_voltage / self.adc_resolution
+        self.io_sensor_gain = (3.9 / 2.0) / 50e-3 * 0.8237986270022885
+        self.io_gain = self.io_adc_gain * self.io_sensor_gain
+        self.io_offset = -(2.50 / 50e-3 + 2.999657404380524)
+
         # Control signal
         self.u_gain = 1 / ((100e6 / f_pwm) - 1)
         self.u_offset = 0
@@ -377,6 +400,8 @@ class BuckHWDefaultSettings:
         self.il_avg_buffer_size = 750
         self.vout_buck_buffer_size = 750
 
+        self.io_buffer_size = 750
+        
         self.u_buffer_size = 750
 
         # Tripping
@@ -460,6 +485,9 @@ class Buck:
         while plat.cpu1_adc_buffer_set(hwm.adc_il_avg, hw_default.il_avg_buffer_size) != 0:
             print('Error setting CPU1 buffer. Trying again...')
 
+        while plat.cpu1_adc_buffer_set(hwm.adc_io, hw_default.io_buffer_size) != 0:
+            print('Error setting CPU1 buffer. Trying again...')
+            
         while plat.cpu2_buffer_set(hwm.cpu2_buffer_u, hw_default.u_buffer_size) != 0:
             print('Error setting CPU2 buffer. Trying again...')
 
@@ -958,6 +986,32 @@ class Buck:
         return data
 
 
+    def read_io_buffer(self):
+        """Reads the samples stored in the Io ADC buffer.
+
+        Returns
+        -------
+        data or status : np.array or int
+            Returns the samples as a numpy array if the data was read
+            successfully. Otherwise, -1 is returned.
+
+        """
+        adc = self.hwm.adc_io
+
+        data = self.plat.cpu1_adc_buffer_read(adc)
+
+        if type(data) is int:
+            print('Error reading Io buffer. Error code: {:}'.format(data))
+            return -1
+
+        data = np.array(data)
+        
+        # Calculate back in Current (A) value     
+        data = data * self.hwm.io_gain + self.hwm.io_offset
+
+        return data
+    
+
     def read_u_buffer(self):
         """Reads the samples stored in the `u` buffer.
 
@@ -1021,6 +1075,11 @@ class Buck:
             print('Could not read IL buffer... trying again.')
 
         while 1:
+            io = self.read_io_buffer()
+            if type(io) is not int: break
+            print('Could not read IL buffer... trying again.')
+            
+        while 1:
             il_avg = self.read_il_avg_buffer()
             if type(il_avg) is not int: break
             print('Could not read IL_avg buffer... trying again.')            
@@ -1035,7 +1094,7 @@ class Buck:
         t = [element * self.hwm.sample_time * 1000 for element in SampleList];
         t = np.array(t) # t in mili seconds
         
-        return [t, vin, vin_buck, vout, vout_buck, il, il_avg, u]
+        return [t, vin, vin_buck, vout, vout_buck, il, il_avg, io, u]
 
 
     def _set_trip_vin(self, trip):
@@ -1499,6 +1558,11 @@ class Buck:
             print('Could not read IL_avg buffer... trying again.')            
 
         while 1:
+            io = self.read_io_buffer()
+            if type(io) is not int: break
+            print('Could not read Io buffer... trying again.')
+
+        while 1:
             u = self.read_u_buffer()
             if type(u) is not int: break
             print('Could not read u buffer... trying again.')
@@ -1506,7 +1570,7 @@ class Buck:
         # Creates time vector (mili seconds)
         t = self.hwm.sample_time * np.arange(vin.shape[0]) / 1e-3
 
-        data = [t, vin, vin_buck, vout, vout_buck, il, il_avg, u]
+        data = [t, vin, vin_buck, vout, vout_buck, il, il_avg, io, u]
 
         return data
     
@@ -1779,6 +1843,11 @@ class Buck:
             print('Could not read IL_avg buffer... trying again.')            
 
         while 1:
+            io = self.read_io_buffer()
+            if type(io) is not int: break
+            print('Could not read Io buffer... trying again.')
+            
+        while 1:
             u = self.read_u_buffer()
             if type(u) is not int: break
             print('Could not read u buffer... trying again.')
@@ -1801,6 +1870,6 @@ class Buck:
         # Creates time vector (mili seconds)
         t = self.hwm.sample_time * np.arange(vin.shape[0]) / 1e-3
 
-        data = [t, vin, vin_buck, vout, vout_buck, il, il_avg, u, niter, il_hat, vc_hat]
+        data = [t, vin, vin_buck, vout, vout_buck, il, il_avg, io, u, niter, il_hat, vc_hat]
 
         return data
