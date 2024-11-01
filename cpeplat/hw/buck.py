@@ -270,13 +270,13 @@ class BuckHWM:
 
         # Vin measurements
         self.vin_adc_gain = self.adc_voltage / self.adc_resolution
-        self.vin_sensor_gain = (16 / 1.6588)
+        self.vin_sensor_gain = (16 * 1.5 / 1.6588)
         self.vin_gain = self.vin_adc_gain * self.vin_sensor_gain
         self.vin_offset = 0
 
         # Vin_buck measurements
         self.vin_buck_adc_gain = self.adc_voltage / self.adc_resolution
-        self.vin_buck_sensor_gain = (16 / 1.6416)
+        self.vin_buck_sensor_gain = (16 * 1.5 / 1.6416)
         self.vin_buck_gain = self.vin_buck_adc_gain * self.vin_buck_sensor_gain
         self.vin_buck_offset = 0
 
