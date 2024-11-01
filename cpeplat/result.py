@@ -12,26 +12,48 @@ This module contains the functions for plotting and saving the data from an expe
 
 import cpeplat as cpe
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import time
 import cpeplat.result as res
 from itertools import zip_longest
 import csv
 
+plt.style.use('seaborn-colorblind')
+matplotlib.rcParams['mathtext.fontset'] = 'stixsans'
+matplotlib.rcParams['font.family'] = 'Latin Modern Sans'
+matplotlib.rcParams.update({'font.size': 12})
+plt.rc('axes', unicode_minus=False)
+plt.ion()
+l_fs = 12
+title_fs = 12.5
+lw = 1.5
+
 ##########-------------- Basic Setting Functions  ----------------############
 
 def _setting_labels(type_of):
     if type_of == 'Voltage':
-        plt.xlabel("Time / ms", fontsize=12)
-        plt.ylabel("Voltage / V", fontsize=12)  
+        plt.xlabel("Time (ms)", fontsize=l_fs)
+        plt.ylabel("Voltage (V)", fontsize=l_fs)  
     
     elif type_of == 'Current':
-        plt.xlabel("Time / ms", fontsize=12)
-        plt.ylabel("Current / A", fontsize=12) 
+        plt.xlabel("Time (ms)", fontsize=l_fs)
+        plt.ylabel("Current (A)", fontsize=l_fs) 
         
     elif type_of == 'ControlSignal':
-        plt.xlabel("Time / ms", fontsize=12)
-        plt.ylabel("u (DutyCycle)", fontsize=12)        
+        plt.xlabel("Time (ms)", fontsize=l_fs)
+        plt.ylabel("Duty cycle", fontsize=l_fs)
+##    if type_of == 'Voltage':
+##        plt.xlabel("Time / ms", fontsize=12)
+##        plt.ylabel("Voltage / V", fontsize=12)  
+##    
+##    elif type_of == 'Current':
+##        plt.xlabel("Time / ms", fontsize=12)
+##        plt.ylabel("Current / A", fontsize=12) 
+##        
+##    elif type_of == 'ControlSignal':
+##        plt.xlabel("Time / ms", fontsize=12)
+##        plt.ylabel("u (DutyCycle)", fontsize=12)        
         
 def _setting_legend(leg, counter):
     i = 0
@@ -51,7 +73,7 @@ def _setting_legend(leg, counter):
     plt.gca().legend(leg, fontsize=12)
         
 def _setting_title(title):
-    plt.title(title, fontsize=14)
+    plt.title(title, fontsize=title_fs)
 
 
 ##########-------------- Plot Functions  -------------############
@@ -331,42 +353,45 @@ def plot_all(data, leg = None, title = None):
         
        
     """
-    
-    plt.figure(figsize=(16, 9))
-    plt.suptitle(title, fontsize = 16,)
-    plt.subplot(1, 3, 1)
+
+
+    plt.figure(figsize=(8, 7))
+    plt.suptitle(title)
+    ax = plt.subplot(3, 1, 1)
     
     counter_data = 0
     for i in data:
-        plt.plot(i[0],i[3])
+        plt.plot(i[0],i[3], lw=lw)
         counter_data = counter_data + 1
         
     res._setting_labels('Voltage')
-    res._setting_title('Output Voltage')
+    res._setting_title('Output voltage')
     res._setting_legend(leg, counter_data)
     plt.grid()   
     
-    plt.subplot(1, 3, 2)
+    plt.subplot(3, 1, 2, sharex=ax)
     counter_data = 0
     for i in data:
-        plt.plot(i[0],i[6])
+        plt.plot(i[0],i[6], lw=lw)
         counter_data = counter_data + 1
         
-    res._setting_labels('CurrSent')
-    res._setting_title('Average Current')
+    res._setting_labels('Current')
+    res._setting_title('Average inductor current')
     res._setting_legend(leg, counter_data)
     plt.grid() 
     
-    plt.subplot(1, 3, 3)
+    plt.subplot(3, 1, 3, sharex=ax)
     counter_data = 0
     for i in data:
-        plt.plot(i[0],i[7])
+        plt.plot(i[0],i[7], lw=lw)
         counter_data = counter_data + 1
         
     res._setting_labels('ControlSignal')
-    res._setting_title('Control Signal u')
+    res._setting_title('Control signal')
     res._setting_legend(leg, counter_data)
     plt.grid()
+
+    plt.tight_layout()
     
     
 def save_variable_csv(data_to_save, path = None, file_name = None):
